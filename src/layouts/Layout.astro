@@ -10,19 +10,124 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 <html lang="zh-CN" class="!overflow-x-hidden">
   <head>
     <BaseHead {title} {description} />
+    <style is:global>
+      html { background: transparent; }
+    </style>
   </head>
 
   <body
-    class="bg-white dark:bg-[#0f0f1a] text-gray-900 dark:text-gray-100 tracking-wide !overflow-x-hidden transition-colors duration-300"
+    class="text-gray-900 dark:text-gray-100 tracking-wide !overflow-x-hidden transition-colors duration-300"
+    style="background:transparent"
   >
+    <!-- 背景 + 遮罩 -->
+    <div id="bg-wrap" class="fixed inset-0 overflow-hidden" style="z-index:0">
+      <div id="bg-image" style="position:absolute;inset:-30px;background-image:url('/bg.jpg');background-size:cover;background-position:center;background-repeat:no-repeat"></div>
+      <div id="bg-overlay" class="absolute inset-0" style="pointer-events:none;z-index:1;background:rgba(0,0,0,0.15)"></div>
+    </div>
+
     <header class="fixed top-0 w-full z-[9999]">
       <Navbar />
     </header>
-    <main class="pt-20 min-h-screen"><slot /></main>
-    <footer><Footer /></footer>
+    <main class="pt-20 min-h-screen relative" style="z-index:1"><slot /></main>
+    <footer class="relative" style="z-index:1"><Footer /></footer>
 
     <script is:inline>
-      // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+      (function(){
+        // ------- 主题切换联动遮罩 -------
+        var overlay = document.getElementById("bg-overlay");
+        if(overlay){
+          var overlayLight = "rgba(0,0,0,0.15)", overlayDark = "rgba(0,0,0,0.55)";
+          function isDark(){ return document.documentElement.classList.contains("dark"); }
+          function updateOverlay(){ overlay.style.background = isDark() ? overlayDark : overlayLight; }
+          var obs = new MutationObserver(function(m){
+            for(var i=0;i<m.length;i++){ if(m[i].attributeName==="class"){ updateOverlay(); break; } }
+          });
+          obs.observe(document.documentElement, {attributes:true});
+          updateOverlay();
+        }
+
+        // ------- 闪光粒子 -------
+        var canvas = document.createElement("canvas");
+        canvas.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9998";
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        document.body.appendChild(canvas);
+
+        var ctx = canvas.getContext("2d");
+        var particles = [];
+        var MAX = 60;
+
+        window.addEventListener("resize", function(){
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+        });
+
+        function spark(x, y){
+          var a = Math.random() * Math.PI * 2;
+          var spd = 40 + Math.random() * 80;
+          var sz = 1.5 + Math.random() * 3;
+          var life = 1;
+          var decay = 0.5 + Math.random() * 0.5;
+          var hue = Math.random() > 0.5 ? (Math.random() > 0.5 ? 270 : 50) : 0;
+          var sat = 20 + Math.random() * 80;
+          var light = 75 + Math.random() * 25;
+          return { x:x, y:y, vx:Math.cos(a)*spd, vy:Math.sin(a)*spd-20, sz:sz, life:life, decay:decay, hue:hue, sat:sat, light:light, phase:Math.random()*Math.PI*2 };
+        }
+
+        var lastTime = performance.now();
+        function frame(time){
+          var dt = Math.min((time - lastTime) / 1000, 0.05);
+          lastTime = time;
+
+          for(var i = particles.length-1; i >= 0; i--){
+            var p = particles[i];
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.vy += 20 * dt;
+            p.life -= p.decay * dt;
+            if(p.life <= 0){ particles.splice(i,1); }
+          }
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          for(var j = 0; j < particles.length; j++){
+            p = particles[j];
+            var alpha = Math.max(0, p.life);
+            var size = Math.max(0.3, p.sz * (0.6 + 0.4 * Math.sin(p.phase + time * 0.005)));
+
+            // 发光外圈
+            var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size * 4);
+            grad.addColorStop(0, "hsla(" + p.hue + "," + p.sat + "%," + p.light + "%," + alpha * 0.5 + ")");
+            grad.addColorStop(0.5, "hsla(" + p.hue + "," + p.sat + "%," + p.light + "%," + alpha * 0.15 + ")");
+            grad.addColorStop(1, "hsla(" + p.hue + "," + p.sat + "%," + p.light + "%,0)");
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, size * 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 核心亮点
+            ctx.globalAlpha = alpha * 0.8;
+            ctx.fillStyle = "hsl(" + p.hue + "," + p.sat + "%," + p.light + "%)";
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+          }
+
+          requestAnimationFrame(frame);
+        }
+
+        document.addEventListener("mousemove", function(e){
+          if(particles.length < MAX){
+            particles.push(spark(e.clientX + (Math.random()-0.5)*15, e.clientY + (Math.random()-0.5)*15));
+          }
+        }, {passive:true});
+
+        requestAnimationFrame(frame);
+      })();
+    </script>
+
+    <script is:inline>
+      // Theme detection
       if (
         localStorage.getItem("theme") === "dark" ||
         (!localStorage.getItem("theme") &&

@@ -7,6 +7,10 @@
     font-family: "Inter", "Noto Sans SC", system-ui, sans-serif;
   }
 
+  html:not(.dark) body {
+    text-shadow: 0 1px 4px rgba(255,255,255,0.5);
+  }
+
   :root {
     --bg-primary: #ffffff;
     --bg-secondary: #faf5ff;
