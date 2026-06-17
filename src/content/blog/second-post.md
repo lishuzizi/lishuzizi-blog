@@ -1,16 +1,40 @@
 ---
-title: "Second post"
-description: "Lorem ipsum dolor sit amet"
-pubDate: "Jul 15 2022"
-heroImage: "/image.jpg"
+title: "关于个人网站搭建的一些思考"
+description: "聊聊为什么选择 Astro + Tailwind 这套技术栈来做个人博客。"
+pubDate: "2024-02-20"
+tags: ["技术", "前端", "Astro"]
+category: "技术"
 ---
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Vitae ultricies leo integer malesuada nunc vel risus commodo viverra. Adipiscing enim eu turpis egestas pretium. Euismod elementum nisi quis eleifend quam adipiscing. In hac habitasse platea dictumst vestibulum. Sagittis purus sit amet volutpat. Netus et malesuada fames ac turpis egestas. Eget magna fermentum iaculis eu non diam phasellus vestibulum lorem. Varius sit amet mattis vulputate enim. Habitasse platea dictumst quisque sagittis. Integer quis auctor elit sed vulputate mi. Dictumst quisque sagittis purus sit amet.
+搭建个人网站时面临的最大问题不是技术选型，而是**你到底想做什么**。
 
-Morbi tristique senectus et netus. Id semper risus in hendrerit gravida rutrum quisque non tellus. Habitasse platea dictumst quisque sagittis purus sit amet. Tellus molestie nunc non blandit massa. Cursus vitae congue mauris rhoncus. Accumsan tortor posuere ac ut. Fringilla urna porttitor rhoncus dolor. Elit ullamcorper dignissim cras tincidunt lobortis. In cursus turpis massa tincidunt dui ut ornare lectus. Integer feugiat scelerisque varius morbi enim nunc. Bibendum neque egestas congue quisque egestas diam. Cras ornare arcu dui vivamus arcu felis bibendum. Dignissim suspendisse in est ante in nibh mauris. Sed tempus urna et pharetra pharetra massa massa ultricies mi.
+### 为什么不是 WordPress
 
-Mollis nunc sed id semper risus in. Convallis a cras semper auctor neque. Diam sit amet nisl suscipit. Lacus viverra vitae congue eu consequat ac felis donec. Egestas integer eget aliquet nibh praesent tristique magna sit amet. Eget magna fermentum iaculis eu non diam. In vitae turpis massa sed elementum. Tristique et egestas quis ipsum suspendisse ultrices. Eget lorem dolor sed viverra ipsum. Vel turpis nunc eget lorem dolor sed viverra. Posuere ac ut consequat semper viverra nam. Laoreet suspendisse interdum consectetur libero id faucibus. Diam phasellus vestibulum lorem sed risus ultricies tristique. Rhoncus dolor purus non enim praesent elementum facilisis. Ultrices tincidunt arcu non sodales neque. Tempus egestas sed sed risus pretium quam vulputate. Viverra suspendisse potenti nullam ac tortor vitae purus faucibus ornare. Fringilla urna porttitor rhoncus dolor purus non. Amet dictum sit amet justo donec enim.
+WordPress 很成熟，功能全面，但太重了。为了写几篇文章跑一个 PHP + MySQL 栈，还得操心安全更新、插件兼容、服务器维护——这些都不是我想花时间的事。
 
-Mattis ullamcorper velit sed ullamcorper morbi tincidunt. Tortor posuere ac ut consequat semper viverra. Tellus mauris a diam maecenas sed enim ut sem viverra. Venenatis urna cursus eget nunc scelerisque viverra mauris in. Arcu ac tortor dignissim convallis aenean et tortor at. Curabitur gravida arcu ac tortor dignissim convallis aenean et tortor. Egestas tellus rutrum tellus pellentesque eu. Fusce ut placerat orci nulla pellentesque dignissim enim sit amet. Ut enim blandit volutpat maecenas volutpat blandit aliquam etiam. Id donec ultrices tincidunt arcu. Id cursus metus aliquam eleifend mi.
+静态站点生成器才是正解。
 
-Tempus quam pellentesque nec nam aliquam sem. Risus at ultrices mi tempus imperdiet. Id porta nibh venenatis cras sed felis eget velit. Ipsum a arcu cursus vitae. Facilisis magna etiam tempor orci eu lobortis elementum. Tincidunt dui ut ornare lectus sit. Quisque non tellus orci ac. Blandit libero volutpat sed cras. Nec tincidunt praesent semper feugiat nibh sed pulvinar proin gravida. Egestas integer eget aliquet nibh praesent tristique magna.
+### Astro 的优势
+
+在众多 SSG 里选了 Astro，理由如下：
+
+1. **零 JS 开销** — 页面默认不输出 JavaScript。只有你主动引入的交互组件才会有 JS。这意味首屏加载极快。
+2. **Markdown 一等公民** — `src/content/blog/` 下放 .md 文件就能生成页面，frontmatter 支持自定义字段，配合 Zod schema 做类型校验。
+3. **Islands 架构** — 需要交互的地方用框架组件（Vue/React/Svelte），不需要的地方纯 HTML，按需加载。
+4. **构建速度快** — 小站秒出，大站也不慢。
+
+### Tailwind CSS 的理由
+
+以前写 CSS 总是陷入命名焦虑——这个 class 叫什么？BEM 还是 utility-first？
+
+Tailwind 直接终结了这个问题。不命名，只组合。`px-4 py-2 bg-purple-500 text-white rounded-lg` — 看代码就知道样式，不用来回翻样式表。
+
+配合 `dark:` 前缀做深色模式，几乎不用写一行自定义 CSS。
+
+### 设计思路
+
+颜色选了紫色系。不是跟风，是个人偏好。紫色在深色背景下显眼但不刺眼，在浅色背景下温柔但不软弱。
+
+字体用了 Inter + 思源黑体。西文用 Inter，中文落到思源黑体，字号和字重对齐，混排时视觉统一。
+
+保持克制。一页只做一件事。首页就是看文章列表，文章页就是读文章。没有弹窗，没有通知，没有侧边栏广告。

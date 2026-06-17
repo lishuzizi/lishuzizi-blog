@@ -27,3 +27,4 @@ package-lock.json
 .vscode/
 package-lock.json
 .edgeone/
+.vercel

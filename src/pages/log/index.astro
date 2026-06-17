@@ -105,7 +105,7 @@ for (const post of allPosts) {
       for (let c = 0; c < 7; c++) {
         const idx = r * 7 + c;
         const day = cells[idx];
-        if (day === null) {
+        if (day == null) {
           html += '<td></td>';
         } else {
           const dayStr = String(day).padStart(2, "0");

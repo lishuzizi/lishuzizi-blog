@@ -1,40 +1,61 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import FormattedDate from "@/components/Date.astro";
 import Layout from "@/layouts/Layout.astro";
 
 type Props = CollectionEntry<"blog">["data"];
 
-const { title, pubDate, updatedDate, heroImage } = Astro.props;
+const { title, pubDate, updatedDate, tags = [], category } = Astro.props;
 ---
 
 <Layout>
-  <article class="pb-10 grid place-items-center grid-cols-1">
-    <div class="w-full grid place-items-center my-10 px-10 overflow-x-hidden">
-      {
-        heroImage && (
-          <img src={heroImage} alt="hero-image" class="rounded-2xl" />
-        )
-      }
-    </div>
-    <div
-      class="prose !max-w-[90vw] overflow-x-hidden !break-words brightness-110 prose-img:scale-90 prose-img:rounded-2xl prose-invert prose-hr:border-white prose-hr:bg-white px-4 md:px-0 md:max-w-4xl"
-    >
-      <div>
-        <div>
-          <FormattedDate date={pubDate} />
-          {
-            updatedDate && (
-              <div class="last-updated-on">
-                Last updated on <FormattedDate date={updatedDate} />
-              </div>
-            )
-          }
-        </div>
-        <h1>{title}</h1>
-        <hr />
+  <article class="max-w-3xl mx-auto px-6 py-16">
+    <header class="mb-10">
+      <div class="flex flex-wrap items-center gap-2 text-sm mb-4 text-gray-500 dark:text-gray-400">
+        <time datetime={pubDate.toISOString()}>
+          {pubDate.toLocaleDateString("zh-CN", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
+        </time>
+        {category && (
+          <>
+            <span>·</span>
+            <span class="text-primary-600 dark:text-primary-400">{category}</span>
+          </>
+        )}
+        {tags.length > 0 && (
+          <div class="flex gap-1.5 ml-1">
+            {tags.map((tag) => (
+              <span class="px-2 py-0.5 rounded-full text-xs bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
+      <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 leading-tight">{title}</h1>
+    </header>
+
+    <div
+      class="prose prose-lg max-w-none dark:prose-invert
+        prose-headings:text-gray-900 dark:prose-headings:text-gray-100
+        prose-a:text-primary-600 dark:prose-a:text-primary-400
+        prose-code:text-gray-900 dark:prose-code:text-gray-100
+        prose-strong:text-gray-900 dark:prose-strong:text-gray-100
+        prose-hr:border-gray-200 dark:prose-hr:border-gray-800"
+    >
       <slot />
     </div>
+
+    {updatedDate && (
+      <p class="mt-12 text-sm text-gray-400 dark:text-gray-500">
+        最后更新于 {updatedDate.toLocaleDateString("zh-CN", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })}
+      </p>
+    )}
   </article>
 </Layout>
