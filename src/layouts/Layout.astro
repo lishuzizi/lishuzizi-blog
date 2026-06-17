@@ -13,6 +13,17 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
     <style is:global>
       html { background: transparent; }
     </style>
+    <script is:inline>
+      if (
+        localStorage.getItem("theme") === "dark" ||
+        (!localStorage.getItem("theme") &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    </script>
   </head>
 
   <body
@@ -22,7 +33,7 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
     <!-- 背景 + 遮罩 -->
     <div id="bg-wrap" class="fixed inset-0 overflow-hidden" style="z-index:0">
       <div id="bg-image" style="position:absolute;inset:-30px;background-image:url('/bg.jpg');background-size:cover;background-position:center;background-repeat:no-repeat"></div>
-      <div id="bg-overlay" class="absolute inset-0" style="pointer-events:none;z-index:1;background:rgba(0,0,0,0.15)"></div>
+      <div id="bg-overlay" class="absolute inset-0" style="pointer-events:none;z-index:1;background:rgba(0,0,0,0.15);transition:background 0.3s"></div>
     </div>
 
     <header class="fixed top-0 w-full z-[9999]">
@@ -124,19 +135,6 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 
         requestAnimationFrame(frame);
       })();
-    </script>
-
-    <script is:inline>
-      // Theme detection
-      if (
-        localStorage.getItem("theme") === "dark" ||
-        (!localStorage.getItem("theme") &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches)
-      ) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
     </script>
   </body>
 </html>
