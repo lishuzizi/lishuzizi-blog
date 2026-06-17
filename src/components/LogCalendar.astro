@@ -1,0 +1,56 @@
+---
+// LogCalendar — 日历容器组件
+// 实际渲染由页面内的客户端脚本完成
+interface Props {
+  class?: string;
+}
+
+const { class: className = "" } = Astro.props;
+---
+
+<div id="log-calendar" class:list={["w-full", className]}>
+  <!-- 月份导航 -->
+  <div
+    id="calendar-nav"
+    class="flex items-center justify-between mb-6"
+  >
+    <button
+      id="prev-month"
+      class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      aria-label="上个月"
+    >
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+    <span
+      id="month-title"
+      class="text-lg font-bold text-gray-800 dark:text-gray-200"
+    ></span>
+    <button
+      id="next-month"
+      class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      aria-label="下个月"
+    >
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- 日历表格 -->
+  <table class="w-full border-collapse select-none">
+    <thead>
+      <tr>
+        <th class="text-center text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 w-[14.285%]">日</th>
+        <th class="text-center text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 w-[14.285%]">一</th>
+        <th class="text-center text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 w-[14.285%]">二</th>
+        <th class="text-center text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 w-[14.285%]">三</th>
+        <th class="text-center text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 w-[14.285%]">四</th>
+        <th class="text-center text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 w-[14.285%]">五</th>
+        <th class="text-center text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 w-[14.285%]">六</th>
+      </tr>
+    </thead>
+    <tbody id="calendar-body"></tbody>
+  </table>
+</div>

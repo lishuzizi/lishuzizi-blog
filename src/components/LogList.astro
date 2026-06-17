@@ -1,0 +1,14 @@
+---
+// LogList — 日志列表容器组件
+// 实际渲染由页面内的客户端脚本完成
+interface Props {
+  class?: string;
+}
+
+const { class: className = "" } = Astro.props;
+---
+
+<div id="log-list" class:list={["w-full", className]}>
+  <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">更新记录</h2>
+  <div id="log-list-content"></div>
+</div>
