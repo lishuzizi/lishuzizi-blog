@@ -42,7 +42,7 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
     <main class="pt-20 min-h-screen relative" style="z-index:1"><slot /></main>
     <footer class="relative" style="z-index:1"><Footer /></footer>
 
-    <script is:inline data-astro-exec="rerun">
+    <script is:inline>
       (function(){
         // ------- 主题切换联动遮罩 -------
         var overlay = document.getElementById("bg-overlay");
