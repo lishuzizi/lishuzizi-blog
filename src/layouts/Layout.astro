@@ -14,14 +14,11 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
       html { background: transparent; }
     </style>
     <script is:inline>
-      if (
-        localStorage.getItem("theme") === "dark" ||
-        (!localStorage.getItem("theme") &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches)
-      ) {
-        document.documentElement.classList.add("dark");
-      } else {
+      var saved = localStorage.getItem("theme");
+      if (saved === "light") {
         document.documentElement.classList.remove("dark");
+      } else {
+        document.documentElement.classList.add("dark");
       }
     </script>
   </head>
