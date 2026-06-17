@@ -1,0 +1,33 @@
+---
+import { SITE_TITLE, SITE_DESCRIPTION } from "@/consts";
+---
+
+<section
+  class="min-h-[70vh] flex items-center justify-center px-6 py-20"
+>
+  <div class="max-w-4xl mx-auto text-center">
+    <!-- Avatar -->
+    <div class="mb-8 flex justify-center">
+      <div
+        class="w-32 h-32 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 p-0.5"
+      >
+        <img
+          src="/avatar.jpg"
+          alt={SITE_TITLE}
+          class="w-full h-full rounded-full object-cover border-2 border-white dark:border-[#0f0f1a]"
+          onerror="this.style.display='none'"
+        />
+      </div>
+    </div>
+
+    <!-- Name -->
+    <h1 class="text-5xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-primary-500 to-primary-700 dark:from-primary-400 dark:to-primary-600 bg-clip-text text-transparent">
+      {SITE_TITLE}
+    </h1>
+
+    <!-- Subtitle placeholder -->
+    <p class="text-xl text-gray-500 dark:text-gray-400">
+      {SITE_DESCRIPTION}
+    </p>
+  </div>
+</section>

@@ -1,0 +1,19 @@
+---
+type Props = {
+  title: string;
+  className?: string;
+};
+const { title, className = "" } = Astro.props;
+---
+
+<section
+  id={title.toLowerCase().replaceAll(/\s+/g, "")}
+  class={`px-6 py-16 ${className}`}
+>
+  <div class="max-w-5xl mx-auto">
+    <h2 class="text-3xl font-bold mb-10 text-gray-900 dark:text-gray-100">
+      {title}
+    </h2>
+    <slot />
+  </div>
+</section>

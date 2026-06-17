@@ -1,0 +1,37 @@
+---
+import BaseHead from "@/components/BaseHead.astro";
+import Navbar from "@/components/Navbar.astro";
+import Footer from "@/components/Footer.astro";
+import { SITE_DESCRIPTION, SITE_TITLE } from "@/consts";
+
+const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
+---
+
+<html lang="zh-CN" class="!overflow-x-hidden">
+  <head>
+    <BaseHead {title} {description} />
+  </head>
+
+  <body
+    class="bg-white dark:bg-[#0f0f1a] text-gray-900 dark:text-gray-100 tracking-wide !overflow-x-hidden transition-colors duration-300"
+  >
+    <header class="fixed top-0 w-full z-[9999]">
+      <Navbar />
+    </header>
+    <main class="pt-20 min-h-screen"><slot /></main>
+    <footer><Footer /></footer>
+
+    <script is:inline>
+      // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+      if (
+        localStorage.getItem("theme") === "dark" ||
+        (!localStorage.getItem("theme") &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    </script>
+  </body>
+</html>
