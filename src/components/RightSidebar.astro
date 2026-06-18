@@ -30,6 +30,12 @@ const lastActive = sortedPosts[0]?.data.pubDate;
 
 // 站点启动时间
 const SITE_START = new Date("2026-06-18T16:30:00+08:00");
+
+// 判断当前页面类型
+const _p = Astro.url.pathname.replace(/\/$/, '');
+const isBlogListing = _p === '/blog';
+const isBlogPost = _p.startsWith('/blog/') && _p !== '/blog';
+const showToc = isBlogListing || isBlogPost;
 ---
 
 <aside class="w-full space-y-4">
@@ -161,6 +167,38 @@ const SITE_START = new Date("2026-06-18T16:30:00+08:00");
       </div>
     </div>
   </div>
+
+  {showToc && (
+    <!-- ========== 目录卡 ========== -->
+    <div
+      class="rounded-2xl bg-white/60 dark:bg-[#0f0f1a]/80 border border-purple-200/50 dark:border-gray-800 p-6"
+    >
+      <h4
+        class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3"
+      >
+        目录
+      </h4>
+
+      {isBlogListing && (
+        <nav class="space-y-1 max-h-[60vh] overflow-y-auto">
+          {sortedPosts.map((post) => (
+            <a
+              href={`/blog/${post.id}`}
+              class="block text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors truncate py-0.5"
+            >
+              {post.data.title}
+            </a>
+          ))}
+        </nav>
+      )}
+
+      {isBlogPost && (
+        <nav id="article-toc" class="space-y-1 text-sm text-gray-500 dark:text-gray-400">
+          <p class="text-xs">加载中...</p>
+        </nav>
+      )}
+    </div>
+  )}
 </aside>
 
 <!-- ========== QR 弹窗 ========== -->
@@ -231,5 +269,39 @@ const SITE_START = new Date("2026-06-18T16:30:00+08:00");
         overlay.classList.remove("flex");
       }
     });
+
+    // --- 文章目录生成 ---
+    var tocContainer = document.getElementById("article-toc");
+    if (tocContainer) {
+      var article = document.querySelector(".prose");
+      if (article) {
+        var headings = article.querySelectorAll("h1, h2, h3");
+        if (headings.length > 0) {
+          var tocHtml = "";
+          headings.forEach(function (h, i) {
+            var level = parseInt(h.tagName.substring(1));
+            var text = h.textContent;
+            var id = h.id || "toc-" + i;
+            if (!h.id) h.id = id;
+            var ml = (level - 1) * 12;
+            tocHtml +=
+              '<a href="#' +
+              id +
+              '" class="block truncate hover:text-primary-600 dark:hover:text-primary-400 transition-colors py-0.5" style="padding-left:' +
+              ml +
+              'px">' +
+              text +
+              "</a>";
+          });
+          tocContainer.innerHTML = tocHtml;
+        } else {
+          tocContainer.innerHTML =
+            '<p class="text-xs text-gray-400">暂无目录</p>';
+        }
+      } else {
+        tocContainer.innerHTML =
+          '<p class="text-xs text-gray-400">暂无目录</p>';
+      }
+    }
   })();
 </script>
