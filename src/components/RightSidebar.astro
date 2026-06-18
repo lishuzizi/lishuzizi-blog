@@ -1,0 +1,235 @@
+---
+import { getCollection } from "astro:content";
+
+const allPosts = await getCollection("blog");
+const sortedPosts = [...allPosts].sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+// 文章数
+const postCount = allPosts.length;
+
+// 总字数 —— 简单统计各文章的字符数
+let totalChars = 0;
+for (const post of allPosts) {
+  // 用 slug 对应文件路径去读原始内容
+  // 这里通过 Astro 的 content API 获取不到 body 长度
+  // 改用 slug 从构建上下文获取，但静态构建时只能近似
+  // 直接估算：先取个近似值，后续可以用 rawContent
+  totalChars += post.body?.replace(/\s/g, "").length || 0;
+}
+
+// 标签 & 分类
+const allTags = [...new Set(allPosts.flatMap((p) => p.data.tags || []))].sort();
+const allCategories = [
+  ...new Set(allPosts.map((p) => p.data.category || "未分类")),
+].sort();
+
+// 最后活动
+const lastActive = sortedPosts[0]?.data.pubDate;
+
+// 站点启动时间
+const SITE_START = new Date("2026-06-18T16:30:00+08:00");
+---
+
+<aside class="w-full space-y-4">
+  <!-- ========== 个人信息卡 ========== -->
+  <div
+    class="rounded-2xl bg-white/70 dark:bg-[#0f0f1a]/70 backdrop-blur-md border border-gray-200 dark:border-gray-800 p-6 text-center"
+  >
+    <!-- 头像 -->
+    <img
+      src="/avatar.jpg"
+      alt="李树孳孳"
+      class="w-20 h-20 rounded-full mx-auto mb-3 object-cover border-2 border-primary-400/50"
+    />
+
+    <!-- 名称 -->
+    <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">
+      李树孳孳
+    </h3>
+
+    <!-- 签名 -->
+    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+      起航追月
+    </p>
+
+    <!-- 社交链接 -->
+    <div class="flex items-center justify-center gap-3 mt-4">
+      <!-- QQ -->
+      <button
+        data-qr="/qr-qq.jpg"
+        data-platform="QQ"
+        class="qr-btn w-9 h-9 flex items-center justify-center rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors text-sm font-bold"
+        title="QQ"
+      >
+        QQ
+      </button>
+
+      <!-- 微信 -->
+      <button
+        data-qr="/qr-wechat.jpg"
+        data-platform="微信"
+        class="qr-btn w-9 h-9 flex items-center justify-center rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 transition-colors text-sm font-bold"
+        title="微信"
+      >
+        信
+      </button>
+
+      <!-- GitHub -->
+      <a
+        href="https://github.com/lishuzizi"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-800/10 hover:bg-gray-800/20 text-gray-700 dark:text-gray-300 transition-colors"
+        title="GitHub"
+      >
+        <!-- GitHub SVG -->
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+      </a>
+
+      <!-- 抖音 -->
+      <button
+        data-qr="/qr-douyin.jpg"
+        data-platform="抖音"
+        class="qr-btn w-9 h-9 flex items-center justify-center rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 transition-colors text-xs font-bold"
+        title="抖音"
+      >
+        抖
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== 站点统计卡 ========== -->
+  <div
+    class="rounded-2xl bg-white/70 dark:bg-[#0f0f1a]/70 backdrop-blur-md border border-gray-200 dark:border-gray-800 p-6"
+  >
+    <h4
+      class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3"
+    >
+      站点统计
+    </h4>
+
+    <div class="space-y-2 text-sm">
+      <div class="flex justify-between">
+        <span class="text-gray-500 dark:text-gray-400">文章</span>
+        <span class="text-gray-800 dark:text-gray-200 font-medium"
+          >{postCount}</span
+        >
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-500 dark:text-gray-400">总字数</span>
+        <span class="text-gray-800 dark:text-gray-200 font-medium"
+          >{totalChars.toLocaleString()}</span
+        >
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-500 dark:text-gray-400">运行时长</span>
+        <span
+          id="runtime-display"
+          class="text-gray-800 dark:text-gray-200 font-medium"
+          data-start={SITE_START.toISOString()}
+        >
+          计算中...
+        </span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-500 dark:text-gray-400">最后活动</span>
+        <span class="text-gray-800 dark:text-gray-200 font-medium">
+          {lastActive
+            ? lastActive.toLocaleDateString("zh-CN", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              })
+            : "暂无"}
+        </span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-500 dark:text-gray-400">标签</span>
+        <span class="text-gray-800 dark:text-gray-200 font-medium"
+          >{allTags.length}</span
+        >
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-500 dark:text-gray-400">分类</span>
+        <span class="text-gray-800 dark:text-gray-200 font-medium"
+          >{allCategories.length}</span
+        >
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ========== QR 弹窗 ========== -->
+<div
+  id="qr-overlay"
+  class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 backdrop-blur-sm"
+>
+  <div
+    class="relative rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-2xl max-w-[320px] w-full mx-4 text-center"
+  >
+    <button
+      id="qr-close"
+      class="absolute -top-3 -right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors text-lg leading-none"
+    >
+      &times;
+    </button>
+    <p id="qr-label" class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4"></p>
+    <img id="qr-img" class="w-full rounded-lg" src="" alt="二维码" />
+    <p class="text-xs text-gray-400 mt-3">扫码关注</p>
+  </div>
+</div>
+
+<script>
+  (function () {
+    // --- 运行时计算 ---
+    var runtimeEl = document.getElementById("runtime-display");
+    if (runtimeEl) {
+      var start = new Date(runtimeEl.dataset.start);
+      function tick() {
+        var now = new Date();
+        var diff = (now - start) / 1000;
+        var days = Math.floor(diff / 86400);
+        var hours = Math.floor((diff % 86400) / 3600);
+        var mins = Math.floor((diff % 3600) / 60);
+        runtimeEl.textContent = days + "天 " + hours + "时 " + mins + "分";
+      }
+      tick();
+      setInterval(tick, 60000);
+    }
+
+    // --- QR 弹窗 ---
+    var overlay = document.getElementById("qr-overlay");
+    var qrImg = document.getElementById("qr-img");
+    var qrLabel = document.getElementById("qr-label");
+    var qrClose = document.getElementById("qr-close");
+
+    function showQR(src, platform) {
+      qrImg.src = src;
+      qrLabel.textContent = platform;
+      overlay.classList.remove("hidden");
+      overlay.classList.add("flex");
+    }
+
+    document.querySelectorAll(".qr-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        showQR(btn.dataset.qr, btn.dataset.platform);
+      });
+    });
+
+    qrClose.addEventListener("click", function () {
+      overlay.classList.add("hidden");
+      overlay.classList.remove("flex");
+    });
+
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) {
+        overlay.classList.add("hidden");
+        overlay.classList.remove("flex");
+      }
+    });
+  })();
+</script>

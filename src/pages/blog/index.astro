@@ -10,7 +10,7 @@ const posts = (await getCollection("blog")).sort(
 );
 ---
 
-<Layout title={`博客 - ${SITE_TITLE}`}>
+<Layout title={`博客 - ${SITE_TITLE}`} sidebar={true}>
   <Breadcrumb
     crumbs={[
       { title: "博客" },
