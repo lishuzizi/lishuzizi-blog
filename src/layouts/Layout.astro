@@ -157,16 +157,23 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, sidebar = false } = 
         requestAnimationFrame(frame);
       })();
 
-      // ------- 后退键直跳首页 (仅深页) -------
+      // ------- 后退键逻辑 -------
+      // 顶层页面(/blog, /log, /about, /projects) → 后退回首页
+      // 深层页面(/blog/某篇) → 后退正常(回到博客列表)
       if (document.querySelector('[data-back-to-home]')) {
-        var _canGoHome = true;
-        history.pushState({ home: true }, '');
-        window.addEventListener('popstate', function () {
-          if (_canGoHome) {
-            _canGoHome = false;
-            window.location.href = '/';
-          }
-        });
+        var _path = window.location.pathname.replace(/\/$/, '');
+        var _segs = _path.split('/').filter(Boolean);
+        // 只有一段路径(如 /blog)才是顶层，两段或以上(如 /blog/post)是深层
+        if (_segs.length <= 1) {
+          var _canGoHome = true;
+          history.pushState({ home: true }, '');
+          window.addEventListener('popstate', function () {
+            if (_canGoHome) {
+              _canGoHome = false;
+              window.location.href = '/';
+            }
+          });
+        }
       }
     </script>
   </body>
