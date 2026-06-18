@@ -180,7 +180,7 @@ const showToc = isBlogListing || isBlogPost;
       </h4>
 
       {isBlogListing && (
-        <nav class="space-y-1 max-h-[60vh] overflow-y-auto">
+        <nav class="space-y-1 max-h-[50vh] overflow-y-auto">
           {sortedPosts.map((post) => (
             <a
               href={`/blog/${post.id}`}
@@ -193,7 +193,7 @@ const showToc = isBlogListing || isBlogPost;
       )}
 
       {isBlogPost && (
-        <nav id="article-toc" class="space-y-1 text-sm text-gray-500 dark:text-gray-400">
+        <nav id="article-toc" class="space-y-1 text-sm text-gray-500 dark:text-gray-400 max-h-[40vh] overflow-y-auto">
           <p class="text-xs">加载中...</p>
         </nav>
       )}
