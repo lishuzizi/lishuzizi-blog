@@ -37,21 +37,16 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, sidebar = false } = 
     <header class="fixed top-0 w-full z-[9999]">
       <Navbar />
     </header>
-    <main class="min-h-screen relative" style="z-index:1">
+    <main class="pt-20 min-h-screen relative" style="z-index:1">
       {sidebar ? (
-        <div class="max-w-5xl mx-auto px-6 lg:pr-[340px]">
-          <div class="pt-20"><slot /></div>
-          <!-- 手机/平板：侧边栏跟在内容后面 -->
-          <div class="mt-8 lg:hidden max-w-md mx-auto">
+        <div class="max-w-6xl mx-auto px-4 lg:px-6 lg:flex lg:gap-8">
+          <div class="flex-1 min-w-0"><slot /></div>
+          <aside class="lg:w-72 lg:shrink-0 lg:sticky lg:top-20 lg:self-start max-md:mt-8" data-back-to-home>
             <RightSidebar />
-          </div>
+          </aside>
         </div>
-        <!-- 桌面端：侧边栏固定定位，所有页面位置一致 -->
-        <aside class="hidden lg:block lg:fixed lg:top-28 lg:w-72" style="right: max(16px, calc(50vw - 744px));" data-back-to-home>
-          <RightSidebar />
-        </aside>
       ) : (
-        <div class="pt-20"><slot /></div>
+        <slot />
       )}
     </main>
     <footer class="relative" style="z-index:1"><Footer /></footer>
