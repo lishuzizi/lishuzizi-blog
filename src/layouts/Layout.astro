@@ -39,10 +39,12 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, sidebar = false } = 
     </header>
     <main class="pt-20 min-h-screen relative" style="z-index:1">
       {sidebar ? (
-        <div class="max-w-6xl mx-auto lg:px-6 lg:flex lg:gap-8">
+        <div class="max-w-6xl mx-auto px-4 lg:px-6 lg:flex lg:gap-8">
           <div class="flex-1 min-w-0"><slot /></div>
-          <aside class="hidden lg:block lg:w-72 lg:shrink-0 lg:pt-12 lg:sticky lg:top-28 lg:self-start">
-            <RightSidebar />
+          <aside class="mt-8 lg:mt-0 lg:w-72 lg:shrink-0 lg:sticky lg:top-28 lg:self-start">
+            <div class="max-w-md mx-auto lg:max-w-none">
+              <RightSidebar />
+            </div>
           </aside>
         </div>
       ) : (
