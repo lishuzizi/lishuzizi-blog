@@ -1,6 +1,0 @@
- bash
-    cd /Users/overtanlented/Desktop/lishuzizi-blog
-    git add .
-    git commit -m "新文章"
-    git push
-    npx vercel --prod

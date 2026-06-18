@@ -4,7 +4,7 @@ export type Crumb = { title: string; href?: string };
 const { crumbs = [] as Crumb[] } = Astro.props;
 ---
 
-<nav aria-label="面包屑导航" class="max-w-3xl mx-auto px-6 pb-0">
+<nav aria-label="面包屑导航" class="pb-4">
   <ol class="flex flex-wrap items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
     <li>
       <a

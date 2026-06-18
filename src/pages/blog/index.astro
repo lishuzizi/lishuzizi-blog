@@ -11,34 +11,36 @@ const posts = (await getCollection("blog")).sort(
 ---
 
 <Layout title={`博客 - ${SITE_TITLE}`} sidebar={true}>
-  <Breadcrumb
-    crumbs={[
-      { title: "博客" },
-    ]}
-  />
-  <section class="max-w-5xl mx-auto px-6 py-16">
-    <h1 class="text-4xl font-bold mb-10 text-gray-900 dark:text-gray-100">博客</h1>
+  <div class="max-w-5xl mx-auto px-6 pt-8 pb-16 rounded-2xl bg-white/80 dark:bg-[#0f0f1a]/80 overflow-hidden">
+    <Breadcrumb
+      crumbs={[
+        { title: "博客" },
+      ]}
+    />
+    <section class="px-0">
+      <h1 class="text-4xl font-bold mb-10 text-gray-900 dark:text-gray-100">博客</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {
+          posts.map((post) => (
+            <BlogPostCard
+              slug={post.id}
+              title={post.data.title}
+              excerpt={post.data.description}
+              date={post.data.pubDate}
+              tags={post.data.tags}
+            />
+          ))
+        }
+      </div>
+
       {
-        posts.map((post) => (
-          <BlogPostCard
-            slug={post.id}
-            title={post.data.title}
-            excerpt={post.data.description}
-            date={post.data.pubDate}
-            tags={post.data.tags}
-          />
-        ))
+        posts.length === 0 && (
+          <p class="text-center text-gray-400 py-20">
+            暂无文章，敬请期待
+          </p>
+        )
       }
-    </div>
-
-    {
-      posts.length === 0 && (
-        <p class="text-center text-gray-400 py-20">
-          暂无文章，敬请期待
-        </p>
-      )
-    }
-  </section>
+    </section>
+  </div>
 </Layout>

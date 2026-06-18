@@ -5,15 +5,17 @@ import { SITE_TITLE } from "@/consts";
 ---
 
 <Layout title={`关于 - ${SITE_TITLE}`} sidebar={true}>
-  <Breadcrumb
-    crumbs={[
-      { title: "关于" },
-    ]}
-  />
-  <section class="max-w-4xl mx-auto px-6 py-16">
-    <h1 class="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">关于</h1>
-    <div class="prose prose-gray dark:prose-invert max-w-none">
-      <p class="text-gray-500 dark:text-gray-400">内容准备中...</p>
-    </div>
-  </section>
+  <div class="max-w-4xl mx-auto px-6 pt-8 pb-16 rounded-2xl bg-white/80 dark:bg-[#0f0f1a]/80 overflow-hidden">
+    <Breadcrumb
+      crumbs={[
+        { title: "关于" },
+      ]}
+    />
+    <section class="px-0">
+      <h1 class="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">关于</h1>
+      <div class="prose prose-gray dark:prose-invert max-w-none">
+        <p class="text-gray-500 dark:text-gray-400">内容准备中...</p>
+      </div>
+    </section>
+  </div>
 </Layout>

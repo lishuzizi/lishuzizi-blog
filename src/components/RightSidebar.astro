@@ -38,10 +38,10 @@ const isBlogPost = _p.startsWith('/blog/') && _p !== '/blog';
 const showToc = isBlogListing || isBlogPost;
 ---
 
-<aside class="w-full space-y-4">
+<aside class="w-full space-y-4 flex flex-col flex-1 min-h-0">
   <!-- ========== 个人信息卡 ========== -->
   <div
-    class="rounded-2xl bg-white/60 dark:bg-[#0f0f1a]/80 border border-purple-200/50 dark:border-gray-800 p-6 text-center"
+    class="rounded-2xl bg-white/80 dark:bg-[#0f0f1a]/80 border border-purple-200/50 dark:border-gray-800 p-6 text-center flex-shrink-0"
   >
     <!-- 头像 -->
     <img
@@ -110,7 +110,7 @@ const showToc = isBlogListing || isBlogPost;
 
   <!-- ========== 站点统计卡 ========== -->
   <div
-    class="rounded-2xl bg-white/60 dark:bg-[#0f0f1a]/80 border border-purple-200/50 dark:border-gray-800 p-6"
+    class="rounded-2xl bg-white/80 dark:bg-[#0f0f1a]/80 border border-purple-200/50 dark:border-gray-800 p-6 flex-shrink-0"
   >
     <h4
       class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3"
@@ -171,16 +171,17 @@ const showToc = isBlogListing || isBlogPost;
   {showToc && (
     <!-- ========== 目录卡 ========== -->
     <div
-      class="rounded-2xl bg-white/60 dark:bg-[#0f0f1a]/80 border border-purple-200/50 dark:border-gray-800 p-6"
+      class="rounded-2xl bg-white/80 dark:bg-[#0f0f1a]/80 border border-purple-200/50 dark:border-gray-800 p-6 flex flex-col flex-1 min-h-0"
     >
       <h4
-        class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3"
+        class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3
+   shrink-0"
       >
         目录
       </h4>
 
       {isBlogListing && (
-        <nav class="space-y-1 max-h-[50vh] overflow-y-auto">
+        <nav class="space-y-1 flex-1 min-h-0 overflow-y-auto">
           {sortedPosts.map((post) => (
             <a
               href={`/blog/${post.id}`}
@@ -193,7 +194,7 @@ const showToc = isBlogListing || isBlogPost;
       )}
 
       {isBlogPost && (
-        <nav id="article-toc" class="space-y-1 text-sm text-gray-500 dark:text-gray-400 max-h-[40vh] overflow-y-auto">
+        <nav id="article-toc" class="space-y-1 text-sm text-gray-500 dark:text-gray-400 flex-1 min-h-0 overflow-y-auto">
           <p class="text-xs">加载中...</p>
         </nav>
       )}
