@@ -8,7 +8,7 @@ type Props = CollectionEntry<"blog">["data"];
 const { title, pubDate, updatedDate, tags = [], category } = Astro.props;
 ---
 
-<Layout>
+<Layout sidebar={true}>
   <Breadcrumb
     crumbs={[
       { title: "博客", href: "/blog" },
