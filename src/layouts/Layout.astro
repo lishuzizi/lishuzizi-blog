@@ -39,9 +39,9 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, sidebar = false } = 
     </header>
     <main class="min-h-screen relative" style="z-index:1">
       {sidebar ? (
-        <div class="max-w-6xl mx-auto lg:grid lg:grid-cols-[1fr_280px] lg:gap-8 lg:px-6">
+        <div class="max-w-6xl mx-auto lg:grid lg:grid-cols-[1fr_280px] lg:gap-8 lg:px-6 lg:items-start">
           <div class="pt-20 px-4 lg:px-0"><slot /></div>
-          <aside class="px-4 pb-8 lg:px-0 lg:pt-20 lg:sticky lg:top-28 lg:self-start" data-back-to-home>
+          <aside class="px-4 pb-8 lg:px-0 lg:pt-20 lg:sticky lg:top-28" data-back-to-home>
             <div class="max-w-md mx-auto lg:max-w-none">
               <RightSidebar />
             </div>
@@ -55,17 +55,26 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, sidebar = false } = 
 
     <script is:inline>
       (function(){
-        // ------- 主题切换联动遮罩 -------
+        // ------- 主题切换联动背景 + 遮罩 -------
+        var bgImage = document.getElementById("bg-image");
         var overlay = document.getElementById("bg-overlay");
-        if(overlay){
-          var overlayLight = "rgba(0,0,0,0.15)", overlayDark = "rgba(0,0,0,0.55)";
-          function isDark(){ return document.documentElement.classList.contains("dark"); }
-          function updateOverlay(){ overlay.style.background = isDark() ? overlayDark : overlayLight; }
+        var DARK_BG = "/bg.jpg", LIGHT_BG = "/bg-light.jpg";
+        function isDark(){ return document.documentElement.classList.contains("dark"); }
+        function updateTheme(){
+          if(isDark()){
+            if(bgImage) bgImage.style.backgroundImage = "url(" + DARK_BG + ")";
+            if(overlay) overlay.style.background = "rgba(0,0,0,0.55)";
+          } else {
+            if(bgImage) bgImage.style.backgroundImage = "url(" + LIGHT_BG + ")";
+            if(overlay) overlay.style.background = "rgba(0,0,0,0.15)";
+          }
+        }
+        updateTheme();
+        if(overlay || bgImage){
           var obs = new MutationObserver(function(m){
-            for(var i=0;i<m.length;i++){ if(m[i].attributeName==="class"){ updateOverlay(); break; } }
+            for(var i=0;i<m.length;i++){ if(m[i].attributeName==="class"){ updateTheme(); break; } }
           });
           obs.observe(document.documentElement, {attributes:true});
-          updateOverlay();
         }
 
         // ------- 闪光粒子 -------
