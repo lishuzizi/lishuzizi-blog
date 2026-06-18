@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import Layout from "@/layouts/Layout.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
 
 type Props = CollectionEntry<"blog">["data"];
 
@@ -8,6 +9,12 @@ const { title, pubDate, updatedDate, tags = [], category } = Astro.props;
 ---
 
 <Layout>
+  <Breadcrumb
+    crumbs={[
+      { title: "博客", href: "/blog" },
+      { title },
+    ]}
+  />
   <article class="max-w-3xl mx-auto px-6 py-16">
     <header class="mb-10">
       <div class="flex flex-wrap items-center gap-2 text-sm mb-4 text-gray-500 dark:text-gray-400">

@@ -1,12 +1,35 @@
 ---
-type Props = {
-  title: string;
-};
-const { title = "Title" } = Astro.props;
+export type Crumb = { title: string; href?: string };
+
+const { crumbs = [] as Crumb[] } = Astro.props;
 ---
 
-<div
-  class="bg-white flex items-center justify-center leading-none pt-2 pb-1 text-center select-none rounded-2xl px-5 font-semibold text-black w-fit"
->
-  <span>{title}</span>
-</div>
+<nav aria-label="面包屑导航" class="max-w-3xl mx-auto px-6 pt-20 pb-0">
+  <ol class="flex flex-wrap items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+    <li>
+      <a
+        href="/"
+        class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+      >
+        首页
+      </a>
+    </li>
+    {crumbs.map((crumb, i) => (
+      <li class="flex items-center gap-1.5">
+        <span class="text-gray-300 dark:text-gray-600 select-none">/</span>
+        {crumb.href ? (
+          <a
+            href={crumb.href}
+            class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+          >
+            {crumb.title}
+          </a>
+        ) : (
+          <span class="text-gray-700 dark:text-gray-300 font-medium truncate max-w-[200px] md:max-w-xs">
+            {crumb.title}
+          </span>
+        )}
+      </li>
+    ))}
+  </ol>
+</nav>
