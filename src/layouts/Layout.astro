@@ -39,14 +39,17 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, sidebar = false } = 
     </header>
     <main class="min-h-screen relative" style="z-index:1">
       {sidebar ? (
-        <div class="max-w-6xl mx-auto lg:grid lg:grid-cols-[1fr_280px] lg:gap-8 lg:px-6 lg:items-start">
-          <div class="pt-20 px-4 lg:px-0"><slot /></div>
-          <aside class="px-4 pb-8 lg:px-0 lg:pt-20 lg:sticky lg:top-28" data-back-to-home>
-            <div class="max-w-md mx-auto lg:max-w-none">
-              <RightSidebar />
-            </div>
-          </aside>
+        <div class="max-w-5xl mx-auto px-6 lg:pr-[340px]">
+          <div class="pt-20"><slot /></div>
+          <!-- 手机/平板：侧边栏跟在内容后面 -->
+          <div class="mt-8 lg:hidden max-w-md mx-auto">
+            <RightSidebar />
+          </div>
         </div>
+        <!-- 桌面端：侧边栏固定定位，所有页面位置一致 -->
+        <aside class="hidden lg:block lg:fixed lg:top-28 lg:w-72" style="left: calc(50% + 32rem + 24px + 32px);" data-back-to-home>
+          <RightSidebar />
+        </aside>
       ) : (
         <div class="pt-20"><slot /></div>
       )}
