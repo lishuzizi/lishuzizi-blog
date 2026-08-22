@@ -14,7 +14,9 @@ Claude Code CLI 使用 JavaScript/TypeScript 开发，Node.js 是它的运行环
 
 **1. 下载 nvm-windows 1.2.2 安装包**
 
-去 GitHub releases 页面下载。注意：如果有 GitHub 加速选项，不要点，会改变页面布局。
+下载链接：https://link.gitcode.com/i/28d55cccc0b1cc00a06c3604b1d35856?isLogin=1
+
+注意：如果有 GitHub 加速选项，不要点，会改变页面布局。
 
 ![nvm 下载页面](/images/claude-code-setup/nvm-download.png)
 
@@ -63,11 +65,11 @@ npm install -g @anthropic-ai/claude-code --registry=https://registry.npmmirror.c
 
 ## 三、CC Switch——API 管理工具
 
-CC Switch 是专为 AI 编程工具（Claude Code、Codex、Gemini CLI、OpenCode、OpenClaw 等）设计的**跨平台可视化管理工具**，支持 Windows、macOS、Linux。
+CC Switch 是专为 AI 编程工具（Claude Code、Codex、Gemini CLI、OpenCode、OpenClaw 等）设计的**跨平台可视化管理工具**，支持 Windows、macOS、Linux（知乎文章：https://zhuanlan.zhihu.com/p/2026961353055696461）。
 
 它的核心作用是**集中管理各类 AI 接口配置**，包括 API Key、节点、代理、中转平台（MCP）、Skills 和 Prompt 模板等信息。
 
-去 GitHub releases 页面下载安装包：
+下载安装包：https://link.csdn.net/?from_id=153755902&target=https%3A%2F%2Fgithub.com%2Ffarion1231%2Fcc-switch%2Freleases
 
 ![CC Switch 下载](/images/claude-code-setup/cc-switch-download.png)
 

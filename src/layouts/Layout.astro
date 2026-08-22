@@ -11,9 +11,6 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, sidebar = false } = 
 <html lang="zh-CN" class="!overflow-x-hidden" style="overflow-x:clip !important">
   <head>
     <BaseHead {title} {description} />
-    <style is:global>
-      html { background: transparent; }
-    </style>
     <script is:inline>
       var saved = localStorage.getItem("theme");
       if (saved === "light") {
@@ -24,20 +21,22 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, sidebar = false } = 
     </script>
   </head>
 
-  <body
-    class="text-gray-900 dark:text-gray-100 tracking-wide !overflow-x-hidden transition-colors duration-300"
-    style="overflow-x:clip !important;background:transparent"
+  <body id="top"
+    class="text-gray-900 dark:text-gray-100 !overflow-x-hidden transition-colors duration-300"
+    style="overflow-x:clip !important"
   >
-    <!-- 背景 + 遮罩 -->
-    <div id="bg-wrap" class="fixed inset-0 overflow-hidden" style="z-index:0">
-      <div id="bg-image" style="position:absolute;inset:-30px;background-image:url('/bg.jpg');background-size:cover;background-position:center;background-repeat:no-repeat"></div>
-      <div id="bg-overlay" class="absolute inset-0" style="pointer-events:none;z-index:1;background:rgba(0,0,0,0.15);transition:background 0.3s"></div>
+    <div id="bg-wrap" class="fixed inset-0 overflow-hidden" aria-hidden="true">
+      <div id="bg-image"></div>
+      <div id="bg-overlay"></div>
+      <div class="ambient ambient-one"></div>
+      <div class="ambient ambient-two"></div>
+      <div class="noise"></div>
     </div>
 
     <header class="fixed top-0 w-full z-[9999]">
       <Navbar />
     </header>
-    <main class="pt-28 min-h-screen relative" style="z-index:1">
+    <main class="pt-24 min-h-screen relative z-[1]">
       {sidebar ? (
         <div class="max-w-6xl mx-auto px-4 lg:px-6 lg:flex lg:gap-8">
           <div class="flex-1 min-w-0"><slot /></div>
@@ -49,7 +48,7 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, sidebar = false } = 
         <slot />
       )}
     </main>
-    <footer class="relative" style="z-index:1"><Footer /></footer>
+    <footer class="relative z-[1]"><Footer /></footer>
 
     <script is:inline>
       (function(){
@@ -75,86 +74,6 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, sidebar = false } = 
           obs.observe(document.documentElement, {attributes:true});
         }
 
-        // ------- 闪光粒子 -------
-        // 清除旧画布（View Transition 后可能残留）
-        var old = document.getElementById("sparkle-canvas");
-        if(old) old.remove();
-
-        var canvas = document.createElement("canvas");
-        canvas.id = "sparkle-canvas";
-        canvas.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9998";
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        document.body.appendChild(canvas);
-
-        var ctx = canvas.getContext("2d");
-        var particles = [];
-        var MAX = 60;
-
-        window.addEventListener("resize", function(){
-          canvas.width = window.innerWidth;
-          canvas.height = window.innerHeight;
-        });
-
-        function spark(x, y){
-          var a = Math.random() * Math.PI * 2;
-          var spd = 40 + Math.random() * 80;
-          var sz = 1.5 + Math.random() * 3;
-          var life = 1;
-          var decay = 0.5 + Math.random() * 0.5;
-          var hue = Math.random() > 0.5 ? (Math.random() > 0.5 ? 270 : 50) : 0;
-          var sat = 20 + Math.random() * 80;
-          var light = 75 + Math.random() * 25;
-          return { x:x, y:y, vx:Math.cos(a)*spd, vy:Math.sin(a)*spd-20, sz:sz, life:life, decay:decay, hue:hue, sat:sat, light:light, phase:Math.random()*Math.PI*2 };
-        }
-
-        var lastTime = performance.now();
-        function frame(time){
-          var dt = Math.min((time - lastTime) / 1000, 0.05);
-          lastTime = time;
-
-          for(var i = particles.length-1; i >= 0; i--){
-            var p = particles[i];
-            p.x += p.vx * dt;
-            p.y += p.vy * dt;
-            p.vy += 20 * dt;
-            p.life -= p.decay * dt;
-            if(p.life <= 0){ particles.splice(i,1); }
-          }
-
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          for(var j = 0; j < particles.length; j++){
-            p = particles[j];
-            var alpha = Math.max(0, p.life);
-            var size = Math.max(0.3, p.sz * (0.6 + 0.4 * Math.sin(p.phase + time * 0.005)));
-
-            var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size * 4);
-            grad.addColorStop(0, "hsla(" + p.hue + "," + p.sat + "%," + p.light + "%," + alpha * 0.5 + ")");
-            grad.addColorStop(0.5, "hsla(" + p.hue + "," + p.sat + "%," + p.light + "%," + alpha * 0.15 + ")");
-            grad.addColorStop(1, "hsla(" + p.hue + "," + p.sat + "%," + p.light + "%,0)");
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, size * 4, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.globalAlpha = alpha * 0.8;
-            ctx.fillStyle = "hsl(" + p.hue + "," + p.sat + "%," + p.light + "%)";
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalAlpha = 1;
-          }
-
-          requestAnimationFrame(frame);
-        }
-
-        document.addEventListener("mousemove", function(e){
-          if(particles.length < MAX){
-            particles.push(spark(e.clientX + (Math.random()-0.5)*15, e.clientY + (Math.random()-0.5)*15));
-          }
-        }, {passive:true});
-
-        requestAnimationFrame(frame);
       })();
 
       // ------- 后退键逻辑 -------

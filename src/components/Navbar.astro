@@ -2,18 +2,18 @@
 import { SITE_TITLE, NAV_LINKS as links } from "@/consts";
 ---
 
-<nav class="w-full py-4 px-6 bg-white/80 dark:bg-[#0f0f1a]/80 border-b border-purple-200/40 dark:border-gray-800">
+<nav class="w-full px-4 pt-4 sm:px-6">
   <div
-    class="max-w-5xl mx-auto flex items-center justify-between"
+    class="nav-shell max-w-6xl mx-auto flex items-center justify-between gap-3 px-4 py-2.5 sm:px-5"
   >
     <a
       href="/"
-      class="text-xl font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+      class="brand-mark shrink-0 text-lg font-bold text-gray-900 dark:text-white"
     >
-      {SITE_TITLE}
+      <span class="brand-dot" aria-hidden="true"></span>{SITE_TITLE}
     </a>
 
-    <div class="flex items-center gap-1">
+    <div class="nav-links flex items-center gap-0.5 overflow-x-auto">
       {
         links.map((link) => {
           const pathname = Astro.url.pathname.replace(
@@ -27,10 +27,10 @@ import { SITE_TITLE, NAV_LINKS as links } from "@/consts";
             <a
               href={link.href}
               class:list={[
-                "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                "whitespace-nowrap px-3 py-2 rounded-full text-sm font-medium transition-all",
                 isActive
-                  ? "bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800",
+                  ? "bg-primary-600 text-white shadow-sm shadow-primary-600/25"
+                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/10",
               ]}
             >
               {link.title}
@@ -42,7 +42,7 @@ import { SITE_TITLE, NAV_LINKS as links } from "@/consts";
       <!-- Theme toggle -->
       <button
         id="theme-toggle"
-        class="ml-2 p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        class="ml-1 shrink-0 p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-white/70 dark:hover:bg-white/10 transition-colors"
         aria-label="切换主题"
       >
         <svg id="sun-icon" class="hidden dark:block w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

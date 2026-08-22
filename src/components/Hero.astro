@@ -1,33 +1,45 @@
 ---
-import { SITE_TITLE, SITE_DESCRIPTION } from "@/consts";
+import { SITE_TITLE } from "@/consts";
+
+const { postCount = 0 } = Astro.props;
 ---
 
-<section
-  class="min-h-[70vh] flex items-center justify-center px-6 py-20"
->
-  <div class="max-w-4xl mx-auto text-center">
-    <!-- Avatar -->
-    <div class="mb-8 flex justify-center">
-      <div
-        class="w-32 h-32 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 p-0.5"
-      >
-        <img
-          src="/avatar.jpg"
-          alt={SITE_TITLE}
-          class="w-full h-full rounded-full object-cover border-2 border-white dark:border-[#0f0f1a]"
-          onerror="this.style.display='none'"
-        />
+<section class="px-5 pb-20 pt-16 sm:px-6 sm:pb-24 sm:pt-24">
+  <div class="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.25fr_.75fr] lg:gap-20">
+    <div class="max-w-3xl">
+      <div class="eyebrow mb-6"><span></span>WELCOME TO MY CORNER</div>
+      <h1 class="hero-title text-5xl font-bold leading-[1.05] sm:text-7xl lg:text-[5.4rem]">
+        把热爱写进<br /><em>每一次生长。</em>
+      </h1>
+      <p class="mt-7 max-w-2xl text-base leading-8 text-gray-600 dark:text-gray-300 sm:text-lg">
+        你好，我是 <strong>{SITE_TITLE}</strong>。这里收集技术探索、生活观察，
+        以及那些值得被记住的微小瞬间。
+      </p>
+      <div class="mt-9 flex flex-wrap gap-3">
+        <a class="hero-primary" href="/blog">开始阅读 <span>↗</span></a>
+        <a class="hero-secondary" href="/about">认识我</a>
+      </div>
+      <div class="mt-10 flex flex-wrap gap-x-7 gap-y-3 text-sm text-gray-500 dark:text-gray-400">
+        <span class="inline-flex items-center gap-2"><i class="status-dot"></i>持续更新中</span>
+        <span>技术 · 随笔 · 成长</span>
       </div>
     </div>
 
-    <!-- Name -->
-    <h1 class="text-5xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-primary-600 to-primary-800 dark:from-primary-400 dark:to-primary-600 bg-clip-text text-transparent">
-      {SITE_TITLE}
-    </h1>
-
-    <!-- Subtitle placeholder -->
-    <p class="text-xl text-gray-700 dark:text-gray-400">
-      {SITE_DESCRIPTION}
-    </p>
+    <div class="portrait-wrap mx-auto w-full max-w-sm lg:mx-0 lg:ml-auto">
+      <div class="portrait-orbit" aria-hidden="true"><span>✦</span></div>
+      <div class="portrait-card">
+        <img
+          src="/avatar.jpg"
+          alt={SITE_TITLE}
+          class="aspect-[4/5] w-full object-cover"
+          onerror="this.style.display='none'"
+        />
+        <div class="portrait-caption">
+          <span>李树孳孳，起航追月</span>
+          <small>BASED IN CHINA</small>
+        </div>
+      </div>
+      <div class="floating-note"><span>{String(postCount).padStart(2, "0")}</span> 篇文章</div>
+    </div>
   </div>
 </section>
