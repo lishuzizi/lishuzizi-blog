@@ -51,7 +51,7 @@ a:hover {
 /* — 日志卡片：沿用原来的日历 + 更新记录结构，只换底色 — */
 .hl-card {
   pointer-events: auto;
-  background: rgba(250, 240, 224, 0.42);
+  background: rgba(250, 240, 224, 0.8);
   box-shadow: 0 8px 24px rgba(30, 20, 18, 0.25);
   color: #2a1a18;
 }
@@ -72,7 +72,7 @@ a:hover {
   text-shadow: 0 0 6px rgba(255, 246, 232, 0.9), 0 0 2px rgba(255, 246, 232, 0.9);
 }
 .hl-card #log-list a.block {
-  background: rgba(255, 250, 240, 0.35);
+  background: rgba(255, 250, 240, 0.5);
   border-color: rgba(120, 80, 60, 0.25);
 }
 .hl-card #log-list a.block:hover {
