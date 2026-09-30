@@ -102,6 +102,49 @@ a:hover {
 .xj-card:hover {
   transform: translateY(-3px);
 }
+/* 卡片背景是暖米色，标题/正文需要深色才看得清（原设计里这两个类没设颜色，
+   会继承本页 body 的浅色文字，导致几乎看不见） */
+.xj-card .card-title {
+  color: #2a1428;
+}
+.xj-card .card-body {
+  color: #4a3038;
+  opacity: 0.85;
+}
+.xj-card .card-meta {
+  color: #7a5a52;
+}
+
+/* — 标签（文章详情页） — */
+.xj-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
+}
+
+/* — 文章详情卡片 — */
+.xj-article-card {
+  pointer-events: auto;
+  background: rgba(246, 234, 216, 0.94);
+  border: 1px solid rgba(198, 113, 57, 0.3);
+  box-shadow: 0 12px 32px rgba(40, 12, 40, 0.35);
+  backdrop-filter: blur(6px);
+  color: #2a1428;
+}
+.xj-article-card .prose {
+  color: #2a1428;
+}
+.xj-article-card .prose :where(h1, h2, h3, h4, strong) {
+  color: #201428;
+}
+.xj-article-card .prose :where(a) {
+  color: var(--color-accent-700);
+}
 
 /* — 无鼠标设备：不做悬浮位移 — */
 @media (hover: none) {

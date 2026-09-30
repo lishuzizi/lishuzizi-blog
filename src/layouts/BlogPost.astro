@@ -1,70 +1,155 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import Layout from "@/layouts/Layout.astro";
-import Breadcrumb from "@/components/Breadcrumb.astro";
+import { SITE_TITLE, NAV_LINKS } from "@/consts";
+import "@/styles/global.css";
+import "@/styles/jiangnan.css";
+import "@/styles/xiangjiang.css";
 
 type Props = CollectionEntry<"blog">["data"];
 
-const { title, pubDate, updatedDate, tags = [], category } = Astro.props;
+const { title, description, pubDate, updatedDate, tags = [], category } = Astro.props;
+
+const NAV_EN: Record<string, string> = {
+  博客: "Blog",
+  日志: "Log",
+  关于: "About",
+  项目: "Projects",
+};
+
+const nav = NAV_LINKS.map((l) => ({
+  href: l.href,
+  label: NAV_EN[l.title] ? `${l.title} ${NAV_EN[l.title]}` : l.title,
+  current: l.href === "/blog",
+}));
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
+
+const pageTitle = `${title} · ${SITE_TITLE}`;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
-<Layout sidebar={true}>
-  <div class="max-w-3xl mx-auto px-6 pt-8 pb-16 rounded-2xl bg-white/80 dark:bg-[#0f0f1a]/80 overflow-hidden">
-    <Breadcrumb
-      crumbs={[
-        { title: "博客", href: "/blog" },
-        { title },
-      ]}
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"
     />
-    <article class="px-0">
-      <header class="mb-10">
-        <div class="flex flex-wrap items-center gap-2 text-sm mb-4 text-gray-500 dark:text-gray-400">
-          <time datetime={pubDate.toISOString()}>
-            {pubDate.toLocaleDateString("zh-CN", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </time>
-          {category && (
-            <>
-              <span>·</span>
-              <span class="text-primary-600 dark:text-primary-400">{category}</span>
-            </>
-          )}
+    <meta name="generator" content={Astro.generator} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="canonical" href={canonicalURL} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL("/og.png", Astro.site)} />
+    <meta property="twitter:card" content="summary_large_image" />
+  </head>
+
+  <body id="top">
+    <!-- 固定背景：与博客列表页同一个湘江夕照场景 -->
+    <canvas
+      id="xj-canvas"
+      aria-hidden="true"
+      style="position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; z-index: 0; touch-action: pan-y; image-rendering: pixelated;"
+    ></canvas>
+
+    <div
+      style="position: relative; z-index: 1; pointer-events: none; display: flex; flex-direction: column;"
+    >
+      <section
+        data-screen-label="01 Article Header"
+        style="display: flex; flex-direction: column; padding: clamp(18px, 3.5vw, 48px); gap: clamp(20px, 4vh, 40px);"
+      >
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;"
+        >
+          <div
+            style="pointer-events: auto; font-family: var(--font-heading); font-size: 22px; display: flex; align-items: center; gap: var(--space-2); color: #fff1dc; text-shadow: 0 1px 8px rgba(40,12,40,0.6);"
+          >
+            <span
+              style="width: 18px; height: 18px; border-radius: 999px; background: #ffb060; display: inline-block;"
+            ></span>
+            <a href="/" style="color: inherit; text-decoration: none;"
+              >{SITE_TITLE}</a
+            >
+          </div>
+
+          <nav
+            aria-label="主导航"
+            style="pointer-events: auto; display: flex; gap: var(--space-1); flex-wrap: wrap;"
+          >
+            {
+              nav.map((l) => (
+                <a
+                  class={`btn xj-btn ${l.current ? "xj-btn-current" : ""}`}
+                  href={l.href}
+                >
+                  {l.label}
+                </a>
+              ))
+            }
+          </nav>
+        </div>
+
+        <div
+          style="max-width: 760px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); text-shadow: 0 1px 12px rgba(30,10,34,0.85);"
+        >
+          <span class="jn-chip xj-chip">{category}</span>
+          <h1
+            style="font-size: clamp(28px, 4.5vw, 48px); line-height: 1.15; margin: 0; letter-spacing: 0; color: #fff4e4;"
+          >
+            {title}
+          </h1>
+          <div
+            style="pointer-events: auto; display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; font-size: 13px; color: #ffe6c8;"
+          >
+            <time datetime={pubDate.toISOString()}>{fmt(pubDate)}</time>
+            {updatedDate && <span>最后更新于 {fmt(updatedDate)}</span>}
+          </div>
           {tags.length > 0 && (
-            <div class="flex gap-1.5 ml-1">
+            <div style="pointer-events: auto; display: flex; gap: 6px; flex-wrap: wrap;">
               {tags.map((tag) => (
-                <span class="px-2 py-0.5 rounded-full text-xs bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400">
-                  {tag}
-                </span>
+                <span class="xj-tag">{tag}</span>
               ))}
             </div>
           )}
         </div>
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 leading-tight">{title}</h1>
-      </header>
+      </section>
 
-      <div
-        class="prose prose-lg max-w-none dark:prose-invert
-          prose-headings:text-gray-900 dark:prose-headings:text-gray-100
-          prose-a:text-primary-600 dark:prose-a:text-primary-400
-          prose-code:text-gray-900 dark:prose-code:text-gray-100
-          prose-strong:text-gray-900 dark:prose-strong:text-gray-100
-          prose-hr:border-gray-200 dark:prose-hr:border-gray-800"
+      <section
+        data-screen-label="02 Article Body"
+        style="padding: clamp(18px, 3.5vw, 48px); padding-top: 0; padding-bottom: 120px; display: flex; flex-direction: column; align-items: center;"
       >
-        <slot />
-      </div>
+        <article
+          class="card xj-article-card"
+          style="max-width: 760px; width: 100%; padding: var(--space-6) var(--space-8);"
+        >
+          <div class="prose prose-lg max-w-none">
+            <slot />
+          </div>
+        </article>
 
-      {updatedDate && (
-        <p class="mt-12 text-sm text-gray-400 dark:text-gray-500">
-          最后更新于 {updatedDate.toLocaleDateString("zh-CN", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </p>
-      )}
-    </article>
-  </div>
-</Layout>
+        <a
+          class="btn xj-btn"
+          href="/blog"
+          style="pointer-events: auto; margin-top: var(--space-6); align-self: center;"
+        >
+          ← 回到博客列表 Back to blog
+        </a>
+      </section>
+    </div>
+
+    <script>
+      import { startScene } from "@/scripts/xiangjiang-scene";
+
+      const canvas = document.getElementById("xj-canvas");
+      if (canvas instanceof HTMLCanvasElement) startScene(canvas);
+    </script>
+  </body>
+</html>
