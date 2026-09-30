@@ -1,6 +1,6 @@
 #!/bin/bash
 # 推送代码并部署到 Vercel 生产环境
-cd /Users/overtanlented/Desktop/lishuzizi-blog
+cd "$(dirname "$0")"
 
 echo "📤 推送到 GitHub..."
 git push

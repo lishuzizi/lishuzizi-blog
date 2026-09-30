@@ -1,5 +1,5 @@
  bash
-    cd /Users/overtanlented/Desktop/lishuzizi-blog
+    cd /Users/overtanlented/lishuzizi-blog
     git add .
     git commit -m "新文章"
     git push

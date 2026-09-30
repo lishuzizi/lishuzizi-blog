@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /Users/overtanlented/Desktop/lishuzizi-blog
+cd "$(dirname "$0")"
 echo "🚀 李树孳孳博客 - 启动中..."
 npx astro dev &
 sleep 3
