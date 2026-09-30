@@ -146,6 +146,14 @@ a:hover {
   color: var(--color-accent-700);
 }
 
+/* — 侧边栏目录（RightSidebar 的 #article-toc）——
+   这些链接是脚本动态生成的，没有自己的文字颜色类，本来是靠继承父级
+   nav 的 text-gray-500；但本页给全站 <a> 设了桃色（见上面的 `a{color}`），
+   直接压过了继承，导致目录在浅色卡片上看不清。这里专门覆盖回来。 */
+#article-toc a {
+  color: inherit;
+}
+
 /* — 无鼠标设备：不做悬浮位移 — */
 @media (hover: none) {
   .xj-card:hover {
