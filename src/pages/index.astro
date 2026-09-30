@@ -1,51 +1,197 @@
 ---
 import { getCollection } from "astro:content";
-import Hero from "@/components/Hero.astro";
-import BlogPostCard from "@/components/BlogPostCard.astro";
-import Layout from "@/layouts/Layout.astro";
+import { SITE_TITLE, SITE_DESCRIPTION, NAV_LINKS } from "@/consts";
+import "@/styles/jiangnan.css";
 
 const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+
+const NAV_EN: Record<string, string> = {
+  博客: "Blog",
+  日志: "Log",
+  关于: "About",
+  项目: "Projects",
+};
+
+const nav = NAV_LINKS.map((l) => ({
+  href: l.href,
+  label: NAV_EN[l.title] ? `${l.title} ${NAV_EN[l.title]}` : l.title,
+}));
+
+const two = (n: number) => String(n).padStart(2, "0");
+const fmt = (d: Date) =>
+  `${d.getFullYear()}.${two(d.getMonth() + 1)}.${two(d.getDate())}`;
+
+const cards = posts.slice(0, 4).map((p) => ({
+  href: `/blog/${p.id}/`,
+  kicker: p.data.category ?? "博客",
+  title: p.data.title,
+  body: p.data.description,
+  meta: fmt(p.data.pubDate),
+}));
+
+const title = `${SITE_TITLE} · 江南雨夜`;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
-<Layout title="李树孳孳">
-  <Hero postCount={posts.length} />
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"
+    />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="canonical" href={canonicalURL} />
+    <title>{title}</title>
+    <meta name="description" content={SITE_DESCRIPTION} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={SITE_DESCRIPTION} />
+    <meta property="og:image" content={new URL("/og.png", Astro.site)} />
+    <meta property="twitter:card" content="summary_large_image" />
+  </head>
 
-  <section class="mx-auto max-w-6xl px-5 pb-20 sm:px-6 sm:pb-28">
-    <div class="section-heading mb-8 flex items-end justify-between gap-5">
-      <div>
-        <p class="section-kicker">RECENT WRITING</p>
-        <h2 class="mt-2 text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">最近写下的</h2>
-      </div>
-      <a
-        href="/blog"
-        class="all-posts-link text-sm font-medium"
+  <body id="top">
+    <!-- 固定背景：逐像素绘制的江南雨夜场景，卡片在其上滚动 -->
+    <canvas
+      id="jn-canvas"
+      aria-hidden="true"
+      style="position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; z-index: 0; touch-action: pan-y; image-rendering: pixelated;"
+    ></canvas>
+
+    <div
+      style="position: relative; z-index: 1; pointer-events: none; display: flex; flex-direction: column;"
+    >
+      <!-- 01 首屏 -->
+      <section
+        data-screen-label="01 Hero"
+        style="min-height: 100vh; display: flex; flex-direction: column; padding: clamp(18px, 3.5vw, 48px); gap: clamp(20px, 5vh, 52px);"
       >
-        全部文章 <span>→</span>
-      </a>
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;"
+        >
+          <div
+            style="pointer-events: auto; font-family: var(--font-heading); font-size: 22px; display: flex; align-items: center; gap: var(--space-2); color: #e6ecf6;"
+          >
+            <span
+              style="width: 18px; height: 18px; border-radius: 999px; background: #8fa6c8; display: inline-block;"
+            ></span>
+            <a href="/" style="color: inherit; text-decoration: none;"
+              >{SITE_TITLE}</a
+            >
+          </div>
+
+          <nav
+            aria-label="主导航"
+            style="pointer-events: auto; display: flex; gap: var(--space-1); flex-wrap: wrap;"
+          >
+            {
+              nav.map((l) => (
+                <a class="btn jn-btn" href={l.href}>
+                  {l.label}
+                </a>
+              ))
+            }
+          </nav>
+        </div>
+
+        <div
+          style="max-width: 560px; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-4) var(--space-8) var(--space-6) 0; background: radial-gradient(ellipse 80% 90% at 30% 50%, rgba(6,10,22,0.55), rgba(6,10,22,0) 72%); text-shadow: 0 1px 10px rgba(4,6,16,0.9);"
+        >
+          <span class="jn-chip">江南 · 雨夜</span>
+          <h1
+            style="font-size: clamp(40px, 6vw, 80px); line-height: 1.05; margin: 0; letter-spacing: 0; color: #f1f4fa;"
+          >
+            江南雨夜
+          </h1>
+          <p
+            style="margin: 0; font-family: var(--font-heading); font-size: clamp(17px, 2vw, 26px); color: #dfe6f2;"
+          >
+            Night Rain in Jiangnan
+          </p>
+          <p
+            style="margin: 0; max-width: 26em; font-size: clamp(14px, 1.2vw, 17px); line-height: 1.6; color: #c9d3e4; text-wrap: pretty;"
+          >
+            细雨落在青石板上，茶楼的灯映在河里。 Rain on the stones, teahouse
+            lights on the canal.
+          </p>
+        </div>
+      </section>
+
+      <!-- 02 博客 -->
+      <section
+        id="blog"
+        data-screen-label="02 Blog"
+        style="padding: clamp(18px, 3.5vw, 48px); display: flex; flex-direction: column; gap: var(--space-6);"
+      >
+        <h2
+          style="margin: 0; color: #eef2f8; text-shadow: 0 2px 12px rgba(4,6,16,0.8);"
+        >
+          博客 <span style="font-size: 0.6em;">Blog</span>
+        </h2>
+
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); max-width: 960px;"
+        >
+          {
+            cards.map((c) => (
+              <a class="card jn-card" href={c.href}>
+                <div class="card-kicker">{c.kicker}</div>
+                <div class="card-title">{c.title}</div>
+                <div class="card-body">{c.body}</div>
+                <div class="card-meta">{c.meta}</div>
+              </a>
+            ))
+          }
+
+          {
+            cards.length === 0 && (
+              <p class="card jn-card card-body">暂无文章，敬请期待</p>
+            )
+          }
+        </div>
+
+        <a
+          class="btn jn-btn"
+          href="/blog"
+          style="pointer-events: auto; align-self: flex-start;"
+        >
+          全部文章 All posts →
+        </a>
+      </section>
+
+      <!-- 03 关于 -->
+      <section
+        id="about"
+        data-screen-label="03 About"
+        style="padding: clamp(18px, 3.5vw, 48px); padding-bottom: 140px; display: flex; flex-direction: column; gap: var(--space-4); max-width: 960px;"
+      >
+        <div
+          class="card jn-card"
+          style="max-width: 560px; display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start;"
+        >
+          <div class="card-kicker">关于 · About</div>
+          <div class="card-title">{SITE_TITLE}</div>
+          <div class="card-body">{SITE_DESCRIPTION}</div>
+          <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+            <a class="btn jn-btn jn-btn-solid" href="/about">关于我</a>
+            <a class="btn jn-btn" href="#top">回到顶部 Back to top</a>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-      {
-        posts.slice(0, 4).map((post) => (
-          <BlogPostCard
-            slug={post.id}
-            title={post.data.title}
-            excerpt={post.data.description}
-            date={post.data.pubDate}
-            tags={post.data.tags}
-          />
-        ))
-      }
-    </div>
+    <script>
+      import { startScene } from "@/scripts/jiangnan-scene";
 
-    {
-      posts.length === 0 && (
-        <p class="text-center text-gray-400 py-20">
-          暂无文章，敬请期待
-        </p>
-      )
-    }
-  </section>
-</Layout>
+      const canvas = document.getElementById("jn-canvas");
+      if (canvas) startScene(canvas);
+    </script>
+  </body>
+</html>
