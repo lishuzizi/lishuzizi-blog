@@ -1,46 +1,217 @@
 ---
 import { getCollection } from "astro:content";
-import BlogPostCard from "@/components/BlogPostCard.astro";
-import Layout from "@/layouts/Layout.astro";
-import Breadcrumb from "@/components/Breadcrumb.astro";
-import { SITE_TITLE } from "@/consts";
+import { SITE_TITLE, SITE_DESCRIPTION, NAV_LINKS } from "@/consts";
+import "@/styles/jiangnan.css";
+import "@/styles/xiangjiang.css";
 
 const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+
+const NAV_EN: Record<string, string> = {
+  博客: "Blog",
+  日志: "Log",
+  关于: "About",
+  项目: "Projects",
+};
+
+const nav = NAV_LINKS.map((l) => ({
+  href: l.href,
+  label: NAV_EN[l.title] ? `${l.title} ${NAV_EN[l.title]}` : l.title,
+  current: l.href === "/blog",
+}));
+
+const two = (n: number) => String(n).padStart(2, "0");
+const fmt = (d: Date) =>
+  `${d.getFullYear()}.${two(d.getMonth() + 1)}.${two(d.getDate())}`;
+
+const cards = posts.map((p) => ({
+  href: `/blog/${p.id}/`,
+  cat: p.data.category,
+  kicker: p.data.category,
+  title: p.data.title,
+  body: p.data.description,
+  meta: fmt(p.data.pubDate),
+}));
+
+const categories = [...new Set(posts.map((p) => p.data.category))];
+const filters = [
+  { id: "all", label: "全部 All" },
+  ...categories.map((c) => ({ id: c, label: c })),
+];
+
+const title = SITE_TITLE;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
-<Layout title={`博客 - ${SITE_TITLE}`} sidebar={true}>
-  <div class="max-w-5xl mx-auto px-6 pt-8 pb-16 rounded-2xl bg-white/80 dark:bg-[#0f0f1a]/80 overflow-hidden">
-    <Breadcrumb
-      crumbs={[
-        { title: "博客" },
-      ]}
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"
     />
-    <section class="px-0">
-      <h1 class="text-4xl font-bold mb-10 text-gray-900 dark:text-gray-100">博客</h1>
+    <meta name="generator" content={Astro.generator} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="canonical" href={canonicalURL} />
+    <title>{title}</title>
+    <meta name="description" content={SITE_DESCRIPTION} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={SITE_DESCRIPTION} />
+    <meta property="og:image" content={new URL("/og.png", Astro.site)} />
+    <meta property="twitter:card" content="summary_large_image" />
+  </head>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {
-          posts.map((post) => (
-            <BlogPostCard
-              slug={post.id}
-              title={post.data.title}
-              excerpt={post.data.description}
-              date={post.data.pubDate}
-              tags={post.data.tags}
-            />
-          ))
-        }
-      </div>
+  <body id="top">
+    <!-- 固定背景：逐像素绘制的湘江夕照场景，卡片在其上滚动 -->
+    <canvas
+      id="xj-canvas"
+      aria-hidden="true"
+      style="position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; z-index: 0; touch-action: pan-y; image-rendering: pixelated;"
+    ></canvas>
 
-      {
-        posts.length === 0 && (
-          <p class="text-center text-gray-400 py-20">
-            暂无文章，敬请期待
+    <div
+      style="position: relative; z-index: 1; pointer-events: none; display: flex; flex-direction: column;"
+    >
+      <!-- 01 首屏 -->
+      <section
+        data-screen-label="01 Blog Header"
+        style="min-height: 100vh; display: flex; flex-direction: column; padding: clamp(18px, 3.5vw, 48px); gap: clamp(20px, 5vh, 52px);"
+      >
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;"
+        >
+          <div
+            style="pointer-events: auto; font-family: var(--font-heading); font-size: 22px; display: flex; align-items: center; gap: var(--space-2); color: #fff1dc; text-shadow: 0 1px 8px rgba(40,12,40,0.6);"
+          >
+            <span
+              style="width: 18px; height: 18px; border-radius: 999px; background: #ffb060; display: inline-block;"
+            ></span>
+            <a href="/" style="color: inherit; text-decoration: none;"
+              >{SITE_TITLE}</a
+            >
+          </div>
+
+          <nav
+            aria-label="主导航"
+            style="pointer-events: auto; display: flex; gap: var(--space-1); flex-wrap: wrap;"
+          >
+            {
+              nav.map((l) => (
+                <a
+                  class={`btn xj-btn ${l.current ? "xj-btn-current" : ""}`}
+                  href={l.href}
+                >
+                  {l.label}
+                </a>
+              ))
+            }
+          </nav>
+        </div>
+
+        <div
+          style="max-width: 540px; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-4) var(--space-8) var(--space-6) 0; background: radial-gradient(ellipse 80% 90% at 30% 50%, rgba(34,12,38,0.5), rgba(34,12,38,0) 72%); text-shadow: 0 1px 12px rgba(30,10,34,0.85);"
+        >
+          <span class="jn-chip xj-chip">湘江 · 夕照</span>
+          <h1
+            style="font-size: clamp(44px, 7vw, 92px); line-height: 1.05; margin: 0; letter-spacing: 0; color: #fff4e4;"
+          >
+            博客
+          </h1>
+          <p
+            style="margin: 0; font-family: var(--font-heading); font-size: clamp(17px, 2vw, 26px); color: #ffe6c8;"
+          >
+            Notes by the Xiang
           </p>
-        )
-      }
-    </section>
-  </div>
-</Layout>
+          <p
+            style="margin: 0; max-width: 26em; font-size: clamp(14px, 1.2vw, 17px); line-height: 1.6; color: #ffeedd; text-wrap: pretty;"
+          >
+            夕阳落进江面，白鹭掠过橘子洲。 Sunset on the river, egrets over
+            Orange Isle.
+          </p>
+        </div>
+      </section>
+
+      <!-- 02 文章列表 -->
+      <section
+        id="posts"
+        data-screen-label="02 Posts"
+        style="padding: clamp(18px, 3.5vw, 48px); padding-bottom: 120px; display: flex; flex-direction: column; gap: var(--space-5);"
+      >
+        <div class="xj-filters" role="group" aria-label="按分类筛选">
+          {
+            filters.map((f, i) => (
+              <button
+                type="button"
+                class="xj-filter"
+                data-filter={f.id}
+                aria-pressed={i === 0 ? "true" : "false"}
+              >
+                {f.label}
+              </button>
+            ))
+          }
+        </div>
+
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: var(--space-4); max-width: 1040px;"
+        >
+          {
+            cards.map((p) => (
+              <a href={p.href} class="card xj-card" data-cat={p.cat}>
+                <div class="card-kicker">{p.kicker}</div>
+                <div class="card-title">{p.title}</div>
+                <p class="card-body">{p.body}</p>
+                <div class="card-meta">{p.meta}</div>
+              </a>
+            ))
+          }
+        </div>
+
+        {
+          posts.length === 0 && (
+            <p style="pointer-events: auto; color: #ffeedd; opacity: 0.7;">
+              暂无文章，敬请期待
+            </p>
+          )
+        }
+
+        <a
+          class="btn xj-btn"
+          href="#top"
+          style="pointer-events: auto; align-self: flex-start;"
+        >
+          回到顶部 Back to top
+        </a>
+      </section>
+    </div>
+
+    <script>
+      import { startScene } from "@/scripts/xiangjiang-scene";
+
+      const canvas = document.getElementById("xj-canvas");
+      if (canvas instanceof HTMLCanvasElement) startScene(canvas);
+
+      const filterButtons = document.querySelectorAll<HTMLButtonElement>(
+        ".xj-filter",
+      );
+      const cards = document.querySelectorAll<HTMLElement>(".xj-card");
+      filterButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const cat = btn.dataset.filter;
+          filterButtons.forEach((b) =>
+            b.setAttribute("aria-pressed", String(b === btn)),
+          );
+          cards.forEach((card) => {
+            const show = cat === "all" || card.dataset.cat === cat;
+            card.style.display = show ? "" : "none";
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

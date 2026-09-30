@@ -31,7 +31,7 @@ const cards = posts.slice(0, 4).map((p) => ({
   meta: fmt(p.data.pubDate),
 }));
 
-const title = `${SITE_TITLE} · 江南雨夜`;
+const title = SITE_TITLE;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 

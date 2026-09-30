@@ -1,0 +1,111 @@
+/* xiangjiang.css — 湘江夕照 博客页
+ *
+ * 由同一份 AI 设计稿（dc 格式）移植而来，字体/设计令牌/基础排版/按钮卡片组件
+ * 与 jiangnan.css 共用（同一套设计系统），这里只放本页专属的页面级样式。
+ * 画布由 src/scripts/xiangjiang-scene.js 逐像素绘制（固定背景），卡片在其上滚动。
+ */
+
+html,
+body {
+  margin: 0;
+  background: #2a1838;
+}
+body {
+  color: #ffeedd;
+}
+
+a {
+  color: #ffd9b0;
+  text-decoration: none;
+}
+a:hover {
+  color: #ffffff;
+}
+
+/* — 顶栏按钮 — */
+.xj-btn {
+  color: #ffe9d0;
+  background: rgba(40, 16, 44, 0.5);
+  border: 1px solid rgba(255, 190, 140, 0.35);
+  backdrop-filter: blur(6px);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+.xj-btn:hover {
+  background: rgba(70, 30, 72, 0.7);
+  color: #ffffff;
+}
+.xj-btn-current {
+  color: #2a1428;
+  background: #f6c9a0;
+  border-color: #f6c9a0;
+}
+.xj-btn-current:hover {
+  background: #ffdcb8;
+  color: #2a1428;
+}
+
+/* — 首屏小标签 — */
+.xj-chip {
+  pointer-events: auto;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: #ffe9d0;
+  background: rgba(255, 176, 96, 0.2);
+  border: 1px solid rgba(255, 190, 140, 0.4);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+/* — 分类筛选按钮 — */
+.xj-filters {
+  pointer-events: auto;
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  align-self: flex-start;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(40, 16, 44, 0.55);
+  backdrop-filter: blur(6px);
+}
+.xj-filter {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  color: #ffe9d0;
+}
+.xj-filter[aria-pressed="true"] {
+  background: #f6c9a0;
+  color: #2a1428;
+}
+
+/* — 卡片（博客文章） — */
+.xj-card {
+  pointer-events: auto;
+  text-decoration: none;
+  color: inherit;
+  background: rgba(246, 234, 216, 0.9);
+  border: 1px solid rgba(198, 113, 57, 0.3);
+  box-shadow: 0 12px 32px rgba(40, 12, 40, 0.35);
+  backdrop-filter: blur(6px);
+  transition: transform 0.2s ease;
+}
+.xj-card:hover {
+  transform: translateY(-3px);
+}
+
+/* — 无鼠标设备：不做悬浮位移 — */
+@media (hover: none) {
+  .xj-card:hover {
+    transform: none;
+  }
+}
