@@ -51,8 +51,8 @@ a:hover {
 /* — 日志卡片：沿用原来的日历 + 更新记录结构，只换底色 — */
 .hl-card {
   pointer-events: auto;
-  background: rgba(250, 240, 224, 0.94);
-  box-shadow: 0 12px 32px rgba(30, 20, 18, 0.4);
+  background: rgba(250, 240, 224, 0.42);
+  box-shadow: 0 8px 24px rgba(30, 20, 18, 0.25);
   color: #2a1a18;
 }
 .hl-card h1,
@@ -65,4 +65,16 @@ a:hover {
 }
 .hl-card nav a:hover {
   color: #a83a2a;
+}
+
+/* 背景板变淡后，深色文字加一圈浅色描边保证可读；更新记录条目也跟着变透明 */
+.hl-card {
+  text-shadow: 0 0 6px rgba(255, 246, 232, 0.9), 0 0 2px rgba(255, 246, 232, 0.9);
+}
+.hl-card #log-list a.block {
+  background: rgba(255, 250, 240, 0.35);
+  border-color: rgba(120, 80, 60, 0.25);
+}
+.hl-card #log-list a.block:hover {
+  background: rgba(255, 250, 240, 0.6);
 }
