@@ -78,3 +78,42 @@ a:hover {
 .hl-card #log-list a.block:hover {
   background: rgba(255, 250, 240, 0.6);
 }
+
+/* — 首屏底部的下滑引导：小字 + 缓慢上下浮动的箭头，滚动后淡出 — */
+.hl-scroll-hint {
+  pointer-events: auto;
+  position: absolute;
+  left: 50%;
+  bottom: clamp(18px, 4vh, 36px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 6px 16px 2px;
+  background: rgba(30, 20, 18, 0.55);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: #fff0d0;
+  opacity: 0.85;
+  transition: opacity 0.4s ease;
+}
+.hl-scroll-hint:hover {
+  color: #ffffff;
+  opacity: 1;
+}
+.hl-scroll-hint svg {
+  animation: hl-bob 2.4s ease-in-out infinite;
+}
+.hl-scroll-hint.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+@keyframes hl-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hl-scroll-hint svg { animation: none; }
+}
+html { scroll-behavior: smooth; }
