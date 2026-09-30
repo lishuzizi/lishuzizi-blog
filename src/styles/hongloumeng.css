@@ -1,0 +1,68 @@
+/* hongloumeng.css — 红楼雪夜 日志页
+ *
+ * 由 AI 设计稿（dc 格式）移植而来；设计令牌/按钮等与 jiangnan.css 共用。
+ * 画布由 src/scripts/hongloumeng-scene.js 逐像素绘制（固定背景），日志卡片在其上滚动。
+ */
+
+html,
+body {
+  margin: 0;
+  background: #f0e2cf;
+}
+body {
+  color: #fff6e6;
+}
+
+a {
+  color: #a83a2a;
+  text-decoration: none;
+}
+a:hover {
+  color: #7d2618;
+}
+
+/* — 顶栏按钮 — */
+.hl-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 0;
+  font-weight: 600;
+  font-size: 15px;
+  color: #fff0d0;
+  background: rgba(30, 20, 18, 0.62);
+  border: 0;
+  transition: background 0.2s ease;
+}
+.hl-btn:hover {
+  background: rgba(30, 20, 18, 0.85);
+  color: #ffffff;
+}
+.hl-btn-current {
+  color: #ffffff;
+  background: #b8283a;
+}
+.hl-btn-current:hover {
+  background: #d03448;
+  color: #ffffff;
+}
+
+/* — 日志卡片：沿用原来的日历 + 更新记录结构，只换底色 — */
+.hl-card {
+  pointer-events: auto;
+  background: rgba(250, 240, 224, 0.94);
+  box-shadow: 0 12px 32px rgba(30, 20, 18, 0.4);
+  color: #2a1a18;
+}
+.hl-card h1,
+.hl-card h2 {
+  color: #2a1a18;
+}
+/* 面包屑 / 日志条目里的链接：全局 <a> 已改成朱红，这里让条目保持原来的深色文字 */
+.hl-card a {
+  color: inherit;
+}
+.hl-card nav a:hover {
+  color: #a83a2a;
+}

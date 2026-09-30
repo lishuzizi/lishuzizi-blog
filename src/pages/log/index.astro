@@ -1,6 +1,10 @@
 ---
 import { getCollection } from "astro:content";
-import Layout from "@/layouts/Layout.astro";
+import { SITE_TITLE, NAV_LINKS } from "@/consts";
+import RightSidebar from "@/components/RightSidebar.astro";
+import "@/styles/global.css";
+import "@/styles/jiangnan.css";
+import "@/styles/hongloumeng.css";
 import Breadcrumb from "@/components/Breadcrumb.astro";
 import LogCalendar from "@/components/LogCalendar.astro";
 import LogList from "@/components/LogList.astro";
@@ -32,28 +36,150 @@ for (const post of allPosts) {
     category: post.data.category || "",
   });
 }
+
+const NAV_EN: Record<string, string> = {
+  博客: "Blog",
+  日志: "Log",
+  关于: "About",
+  项目: "Projects",
+};
+
+const nav = NAV_LINKS.map((l) => ({
+  href: l.href,
+  label: NAV_EN[l.title] ? `${l.title} ${NAV_EN[l.title]}` : l.title,
+  current: l.href === "/log",
+}));
+
+const title = `日志 — ${SITE_TITLE}`;
+const description = "博客更新日志日历";
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
-<Layout title="日志 — 李树孳孳" description="博客更新日志日历" sidebar={true}>
-  <div class="max-w-4xl mx-auto px-6 pt-8 pb-16 rounded-2xl bg-white/80 dark:bg-[#0f0f1a]/80 overflow-hidden">
-    <Breadcrumb
-      crumbs={[
-        { title: "日志" },
-      ]}
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"
     />
-    <section class="px-0">
-      <h1 class="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">日志</h1>
-      <p class="text-gray-600 dark:text-gray-400 mb-10">博客文章的更新日历</p>
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonicalURL} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL("/og.png", Astro.site)} />
+  </head>
 
-      <LogCalendar class="mb-12" />
-      <LogList />
+  <body id="top">
+    <!-- 固定背景：逐像素绘制的红楼雪夜场景（场景画布 + 匾额文字画布） -->
+    <canvas
+      id="hl-canvas"
+      aria-hidden="true"
+      style="position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; z-index: 0; touch-action: pan-y; image-rendering: pixelated;"
+    ></canvas>
+    <canvas
+      id="hl-text"
+      aria-hidden="true"
+      style="position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; z-index: 0; pointer-events: none;"
+    ></canvas>
 
-      <div id="log-empty-state" class="hidden text-center py-20 text-gray-500 dark:text-gray-500">
-        暂无更新记录
-      </div>
-    </section>
-  </div>
-</Layout>
+    <div
+      style="position: relative; z-index: 1; pointer-events: none; display: flex; flex-direction: column;"
+    >
+      <section
+        data-screen-label="01 Log Header"
+        style="display: flex; flex-direction: column; padding: clamp(18px, 3.5vw, 48px); gap: clamp(12px, 3vh, 40px); min-height: 42vh;"
+      >
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;"
+        >
+          <div
+            style="pointer-events: auto; font-family: var(--font-heading); font-size: 22px; display: flex; align-items: center; gap: var(--space-2); color: #fff0d0; text-shadow: 0 2px 0 rgba(30,20,18,0.55);"
+          >
+            <span style="width: 16px; height: 16px; background: #b8283a; display: inline-block;"></span>
+            <a href="/" style="color: inherit;">{SITE_TITLE}</a>
+          </div>
+          <nav
+            aria-label="主导航"
+            style="pointer-events: auto; display: flex; gap: var(--space-1); flex-wrap: wrap;"
+          >
+            {
+              nav.map((l) => (
+                <a class={`hl-btn ${l.current ? "hl-btn-current" : ""}`} href={l.href}>
+                  {l.label}
+                </a>
+              ))
+            }
+          </nav>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2);">
+          <span style="font-size: 13px; letter-spacing: 0.08em; color: #ffe9a8; text-shadow: 0 1px 0 rgba(60,30,50,0.7), 0 0 10px rgba(60,30,60,0.5);">红楼梦 · 大观园 · 雪</span>
+          <p style="margin: 0; font-family: var(--font-heading); font-size: clamp(17px, 2vw, 26px); color: #fff0d0; text-shadow: 0 2px 0 rgba(60,30,50,0.55);">Notes from the Grand View Garden</p>
+        </div>
+      </section>
+
+      <section
+        data-screen-label="02 Log"
+        style="padding: clamp(18px, 3.5vw, 48px); padding-top: 0; padding-bottom: 120px;"
+      >
+        <div
+          class="max-w-6xl mx-auto px-4 lg:px-6 lg:flex lg:gap-8"
+          style="pointer-events: auto;"
+          data-back-to-home
+        >
+          <div class="flex-1 min-w-0">
+            <div class="hl-card max-w-4xl mx-auto px-6 pt-8 pb-16 overflow-hidden">
+              <Breadcrumb crumbs={[{ title: "日志" }]} />
+              <section class="px-0">
+                <h1 class="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">日志</h1>
+                <p class="text-gray-600 dark:text-gray-400 mb-10">博客文章的更新日历</p>
+
+                <LogCalendar class="mb-12" />
+                <LogList />
+
+                <div id="log-empty-state" class="hidden text-center py-20 text-gray-500 dark:text-gray-500">
+                  暂无更新记录
+                </div>
+              </section>
+            </div>
+          </div>
+          <aside style="position: sticky; top: 2rem; height: fit-content; width: 288px; flex-shrink: 0;">
+            <RightSidebar />
+          </aside>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      import { startScene } from "@/scripts/hongloumeng-scene";
+      const canvas = document.getElementById("hl-canvas");
+      const text = document.getElementById("hl-text");
+      if (canvas instanceof HTMLCanvasElement && text instanceof HTMLCanvasElement)
+        startScene(canvas, text);
+
+      // 后退键：/log 是顶层页面，后退回首页
+      if (document.querySelector("[data-back-to-home]")) {
+        const segs = window.location.pathname.replace(/\/$/, "").split("/").filter(Boolean);
+        if (segs.length <= 1) {
+          let canGoHome = true;
+          history.pushState({ home: true }, "");
+          window.addEventListener("popstate", () => {
+            if (canGoHome) {
+              canGoHome = false;
+              window.location.href = "/";
+            }
+          });
+        }
+      }
+    </script>
+  </body>
+</html>
+
 
 <script define:vars={{ postsData }} is:inline>
 (() => {
