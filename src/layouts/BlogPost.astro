@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import { SITE_TITLE, NAV_LINKS } from "@/consts";
+import RightSidebar from "@/components/RightSidebar.astro";
 import "@/styles/global.css";
 import "@/styles/jiangnan.css";
 import "@/styles/xiangjiang.css";
@@ -124,24 +125,41 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
       <section
         data-screen-label="02 Article Body"
-        style="padding: clamp(18px, 3.5vw, 48px); padding-top: 0; padding-bottom: 120px; display: flex; flex-direction: column; align-items: center;"
+        style="padding: clamp(18px, 3.5vw, 48px); padding-top: 0; padding-bottom: 120px;"
       >
-        <article
-          class="card xj-article-card"
-          style="max-width: 760px; width: 100%; padding: var(--space-6) var(--space-8);"
+        <div
+          class="max-w-6xl mx-auto px-4 lg:px-6 lg:flex lg:gap-8"
+          style="pointer-events: auto;"
+          data-back-to-home
         >
-          <div class="prose prose-lg max-w-none">
-            <slot />
-          </div>
-        </article>
+          <div
+            class="flex-1 min-w-0"
+            style="display: flex; flex-direction: column; align-items: center;"
+          >
+            <article
+              class="card xj-article-card"
+              style="max-width: 760px; width: 100%; padding: var(--space-6) var(--space-8);"
+            >
+              <div class="prose prose-lg max-w-none">
+                <slot />
+              </div>
+            </article>
 
-        <a
-          class="btn xj-btn"
-          href="/blog"
-          style="pointer-events: auto; margin-top: var(--space-6); align-self: center;"
-        >
-          ← 回到博客列表 Back to blog
-        </a>
+            <a
+              class="btn xj-btn"
+              href="/blog"
+              style="margin-top: var(--space-6); align-self: center;"
+            >
+              ← 回到博客列表 Back to blog
+            </a>
+          </div>
+
+          <aside
+            style="position: sticky; top: 2rem; height: fit-content; width: 288px; flex-shrink: 0;"
+          >
+            <RightSidebar />
+          </aside>
+        </div>
       </section>
     </div>
 
@@ -150,6 +168,23 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
       const canvas = document.getElementById("xj-canvas");
       if (canvas instanceof HTMLCanvasElement) startScene(canvas);
+
+      // 后退键：/blog/某篇 是深层页面，正常后退（回到博客列表），这里保持和
+      // 其他页面一致的逻辑，只在路径深度 <= 1 时才会触发跳转首页。
+      if (document.querySelector("[data-back-to-home]")) {
+        const path = window.location.pathname.replace(/\/$/, "");
+        const segs = path.split("/").filter(Boolean);
+        if (segs.length <= 1) {
+          let canGoHome = true;
+          history.pushState({ home: true }, "");
+          window.addEventListener("popstate", () => {
+            if (canGoHome) {
+              canGoHome = false;
+              window.location.href = "/";
+            }
+          });
+        }
+      }
     </script>
   </body>
 </html>

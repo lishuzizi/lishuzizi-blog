@@ -1,6 +1,8 @@
 ---
 import { getCollection } from "astro:content";
 import { SITE_TITLE, SITE_DESCRIPTION, NAV_LINKS } from "@/consts";
+import RightSidebar from "@/components/RightSidebar.astro";
+import "@/styles/global.css";
 import "@/styles/jiangnan.css";
 import "@/styles/xiangjiang.css";
 
@@ -140,53 +142,64 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       <section
         id="posts"
         data-screen-label="02 Posts"
-        style="padding: clamp(18px, 3.5vw, 48px); padding-bottom: 120px; display: flex; flex-direction: column; gap: var(--space-5);"
+        style="padding: clamp(18px, 3.5vw, 48px); padding-bottom: 120px;"
       >
-        <div class="xj-filters" role="group" aria-label="按分类筛选">
-          {
-            filters.map((f, i) => (
-              <button
-                type="button"
-                class="xj-filter"
-                data-filter={f.id}
-                aria-pressed={i === 0 ? "true" : "false"}
-              >
-                {f.label}
-              </button>
-            ))
-          }
-        </div>
-
         <div
-          style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: var(--space-4); max-width: 1040px;"
+          class="max-w-6xl mx-auto px-4 lg:px-6 lg:flex lg:gap-8"
+          style="pointer-events: auto;"
+          data-back-to-home
         >
-          {
-            cards.map((p) => (
-              <a href={p.href} class="card xj-card" data-cat={p.cat}>
-                <div class="card-kicker">{p.kicker}</div>
-                <div class="card-title">{p.title}</div>
-                <p class="card-body">{p.body}</p>
-                <div class="card-meta">{p.meta}</div>
-              </a>
-            ))
-          }
+          <div
+            class="flex-1 min-w-0"
+            style="display: flex; flex-direction: column; gap: var(--space-5);"
+          >
+            <div class="xj-filters" role="group" aria-label="按分类筛选">
+              {
+                filters.map((f, i) => (
+                  <button
+                    type="button"
+                    class="xj-filter"
+                    data-filter={f.id}
+                    aria-pressed={i === 0 ? "true" : "false"}
+                  >
+                    {f.label}
+                  </button>
+                ))
+              }
+            </div>
+
+            <div
+              style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: var(--space-4);"
+            >
+              {
+                cards.map((p) => (
+                  <a href={p.href} class="card xj-card" data-cat={p.cat}>
+                    <div class="card-kicker">{p.kicker}</div>
+                    <div class="card-title">{p.title}</div>
+                    <p class="card-body">{p.body}</p>
+                    <div class="card-meta">{p.meta}</div>
+                  </a>
+                ))
+              }
+            </div>
+
+            {
+              posts.length === 0 && (
+                <p style="color: #ffeedd; opacity: 0.7;">暂无文章，敬请期待</p>
+              )
+            }
+
+            <a class="btn xj-btn" href="#top" style="align-self: flex-start;">
+              回到顶部 Back to top
+            </a>
+          </div>
+
+          <aside
+            style="position: sticky; top: 2rem; height: fit-content; width: 288px; flex-shrink: 0;"
+          >
+            <RightSidebar />
+          </aside>
         </div>
-
-        {
-          posts.length === 0 && (
-            <p style="pointer-events: auto; color: #ffeedd; opacity: 0.7;">
-              暂无文章，敬请期待
-            </p>
-          )
-        }
-
-        <a
-          class="btn xj-btn"
-          href="#top"
-          style="pointer-events: auto; align-self: flex-start;"
-        >
-          回到顶部 Back to top
-        </a>
       </section>
     </div>
 
@@ -212,6 +225,22 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
           });
         });
       });
+
+      // 后退键：/blog 是顶层页面，后退回首页
+      if (document.querySelector("[data-back-to-home]")) {
+        const path = window.location.pathname.replace(/\/$/, "");
+        const segs = path.split("/").filter(Boolean);
+        if (segs.length <= 1) {
+          let canGoHome = true;
+          history.pushState({ home: true }, "");
+          window.addEventListener("popstate", () => {
+            if (canGoHome) {
+              canGoHome = false;
+              window.location.href = "/";
+            }
+          });
+        }
+      }
     </script>
   </body>
 </html>
