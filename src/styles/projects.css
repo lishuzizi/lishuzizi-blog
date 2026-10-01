@@ -58,3 +58,50 @@ a:hover {
 .pj-card:hover {
   background: rgba(30, 20, 60, 0.92);
 }
+
+/* — 首屏底部的下滑引导：小字 + 缓慢上下浮动的箭头，滚动后淡出 — */
+.pj-scroll-hint {
+  pointer-events: auto;
+  position: absolute;
+  left: 50%;
+  bottom: clamp(18px, 4vh, 36px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 16px 2px;
+  background: rgba(30, 20, 60, 0.55);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: #fff0d0;
+  opacity: 0.85;
+  transition: opacity 0.4s ease;
+}
+.pj-scroll-hint:hover {
+  color: #ffffff;
+  opacity: 1;
+}
+.pj-scroll-hint svg {
+  animation: pj-bob 2.4s ease-in-out infinite;
+}
+.pj-scroll-hint.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+@keyframes pj-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pj-scroll-hint svg { animation: none; }
+}
+html { scroll-behavior: smooth; }
+
+/* — 第二屏：内容卡片（暂为空） — */
+.pj-panel {
+  pointer-events: auto;
+  background: rgba(30, 20, 60, 0.78);
+  color: #fff6e6;
+  padding: var(--space-5, 24px);
+  max-width: 1040px;
+}
