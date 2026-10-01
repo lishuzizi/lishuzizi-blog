@@ -1,19 +1,166 @@
 ---
-import Layout from "@/layouts/Layout.astro";
-import Breadcrumb from "@/components/Breadcrumb.astro";
-import { SITE_TITLE } from "@/consts";
+import { SITE_TITLE, NAV_LINKS } from "@/consts";
+import "@/styles/global.css";
+import "@/styles/jiangnan.css";
+import "@/styles/projects.css";
+
+const NAV_EN: Record<string, string> = {
+  博客: "Blog",
+  日志: "Log",
+  关于: "About",
+  项目: "Projects",
+};
+
+const nav = NAV_LINKS.map((l) => ({
+  href: l.href,
+  label: NAV_EN[l.title] ? `${l.title} ${NAV_EN[l.title]}` : l.title,
+  current: l.href === "/projects",
+}));
+
+// 悬停卡片时，场景里对应的拱门会亮起（见 projects-scene 的 hot）
+const cards = [
+  { kc: "#ffb070", kicker: "拱门 一", title: "安全 · 工具", body: "安全研究、脚本和小工具类项目放在这里。" },
+  { kc: "#ffd878", kicker: "拱门 二", title: "游戏 · 创作", body: "游戏、像素作品和互动实验放在这里。" },
+  { kc: "#a8e0c0", kicker: "拱门 三", title: "影像 · 摄影", body: "相机、无人机作品和相关工具放在这里。" },
+];
+
+const title = `项目 - ${SITE_TITLE}`;
+const description = "李树孳孳的项目";
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
-<Layout title={`项目 - ${SITE_TITLE}`} sidebar={true}>
-  <div class="max-w-4xl mx-auto px-6 pt-8 pb-16 rounded-2xl bg-white/80 dark:bg-[#0f0f1a]/80 overflow-hidden">
-    <Breadcrumb
-      crumbs={[
-        { title: "项目" },
-      ]}
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"
     />
-    <section class="px-0">
-      <h1 class="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">项目</h1>
-      <p class="text-gray-500 dark:text-gray-400">内容准备中...</p>
-    </section>
-  </div>
-</Layout>
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonicalURL} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL("/og.png", Astro.site)} />
+  </head>
+
+  <body id="top">
+    <!-- 固定背景：逐像素绘制的黄昏拱门庭院（场景画布 + 文字画布） -->
+    <canvas
+      id="pj-canvas"
+      aria-hidden="true"
+      style="position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; z-index: 0; touch-action: pan-y; image-rendering: pixelated;"
+    ></canvas>
+    <canvas
+      id="pj-text"
+      aria-hidden="true"
+      style="position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; z-index: 0; pointer-events: none;"
+    ></canvas>
+
+    <div
+      style="position: relative; z-index: 1; pointer-events: none; display: flex; flex-direction: column;"
+    >
+      <section
+        data-screen-label="01 Projects"
+        data-back-to-home
+        style="min-height: 100vh; display: flex; flex-direction: column; padding: clamp(18px, 3.5vw, 48px); gap: clamp(12px, 3vh, 40px); box-sizing: border-box;"
+      >
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;"
+        >
+          <div
+            style="pointer-events: auto; font-family: var(--font-heading); font-size: 22px; display: flex; align-items: center; gap: var(--space-2); color: #fff0d0; text-shadow: 0 2px 0 rgba(30,20,60,0.7);"
+          >
+            <span style="width: 16px; height: 16px; background: #ffb070; display: inline-block;"></span>
+            <a href="/" style="color: inherit;">{SITE_TITLE}</a>
+          </div>
+          <nav
+            aria-label="主导航"
+            style="pointer-events: auto; display: flex; gap: var(--space-1); flex-wrap: wrap;"
+          >
+            {
+              nav.map((l) => (
+                <a class={`pj-btn ${l.current ? "pj-btn-current" : ""}`} href={l.href}>
+                  {l.label}
+                </a>
+              ))
+            }
+          </nav>
+        </div>
+
+        <div
+          style="max-width: 520px; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2);"
+        >
+          <span
+            style="font-family: monospace; font-size: 14px; letter-spacing: 0.08em; color: #ffd878; text-shadow: 0 1px 0 rgba(30,20,60,0.8);"
+            >&gt; ls ./projects</span
+          >
+          <h1
+            style="font-size: clamp(44px, 6vw, 72px); line-height: 1.05; margin: 0; color: #fff6e6; text-shadow: 3px 3px 0 #b8402e;"
+          >
+            项目
+          </h1>
+          <p
+            style="margin: 0; font-family: var(--font-heading); font-size: clamp(17px, 2vw, 26px); color: #ffe4ae; text-shadow: 0 2px 0 rgba(30,20,60,0.7);"
+          >
+            Projects
+          </p>
+        </div>
+
+        <div
+          style="margin-top: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-2); max-width: 1040px;"
+        >
+          {
+            cards.map((c, i) => (
+              <div class="pj-card" data-card={i}>
+                <div style={`font-size: 13px; letter-spacing: 0.06em; color: ${c.kc};`}>{c.kicker}</div>
+                <div style="font-family: var(--font-heading); font-size: 19px; color: #fff6e6;">{c.title}</div>
+                <div style="font-size: 14px; line-height: 1.55; color: #e8dcf0;">{c.body}</div>
+                <div style="font-size: 12px; color: #ffd878;">占位 · 待补充</div>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+    </div>
+
+    <script>
+      import { startScene } from "@/scripts/projects-scene";
+
+      const canvas = document.getElementById("pj-canvas");
+      const text = document.getElementById("pj-text");
+      if (canvas instanceof HTMLCanvasElement && text instanceof HTMLCanvasElement) {
+        const scene = startScene(canvas, text);
+        document.querySelectorAll<HTMLElement>("[data-card]").forEach((el) => {
+          const i = Number(el.dataset.card);
+          el.addEventListener("mouseenter", () => {
+            scene.hot = i;
+          });
+          el.addEventListener("mouseleave", () => {
+            if (scene.hot === i) scene.hot = -1;
+          });
+        });
+      }
+
+      // 后退键：/projects 是顶层页面，后退回首页
+      if (document.querySelector("[data-back-to-home]")) {
+        const segs = window.location.pathname.replace(/\/$/, "").split("/").filter(Boolean);
+        if (segs.length <= 1) {
+          let canGoHome = true;
+          history.pushState({ home: true }, "");
+          window.addEventListener("popstate", () => {
+            if (canGoHome) {
+              canGoHome = false;
+              window.location.href = "/";
+            }
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

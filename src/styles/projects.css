@@ -1,0 +1,60 @@
+/* projects.css — 项目 页
+ *
+ * 由 AI 设计稿（dc 格式）移植而来；设计令牌与 jiangnan.css 共用。
+ * 画布由 src/scripts/projects-scene.js 逐像素绘制（固定背景）。
+ */
+
+html,
+body {
+  margin: 0;
+  background: #2c3878;
+}
+body {
+  color: #fff6e6;
+}
+
+a {
+  color: #ffd878;
+  text-decoration: none;
+}
+a:hover {
+  color: #ffffff;
+}
+
+.pj-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 18px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #fff0d0;
+  background: rgba(30, 20, 60, 0.55);
+  transition: background 0.2s ease;
+}
+.pj-btn:hover {
+  background: rgba(30, 20, 60, 0.85);
+  color: #ffffff;
+}
+.pj-btn-current {
+  color: #2a1830;
+  background: #ffb070;
+}
+.pj-btn-current:hover {
+  background: #ffc890;
+  color: #2a1830;
+}
+
+.pj-card {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--space-2) var(--space-3);
+  background: rgba(30, 20, 60, 0.78);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.pj-card:hover {
+  background: rgba(30, 20, 60, 0.92);
+}
