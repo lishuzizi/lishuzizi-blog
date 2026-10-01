@@ -1,21 +1,158 @@
 ---
-import Layout from "@/layouts/Layout.astro";
-import Breadcrumb from "@/components/Breadcrumb.astro";
-import { SITE_TITLE } from "@/consts";
+import { SITE_TITLE, NAV_LINKS } from "@/consts";
+import "@/styles/global.css";
+import "@/styles/jiangnan.css";
+import "@/styles/about.css";
+
+const NAV_EN: Record<string, string> = {
+  博客: "Blog",
+  日志: "Log",
+  关于: "About",
+  项目: "Projects",
+};
+
+const nav = NAV_LINKS.map((l) => ({
+  href: l.href,
+  label: NAV_EN[l.title] ? `${l.title} ${NAV_EN[l.title]}` : l.title,
+  current: l.href === "/about",
+}));
+
+const items = [
+  { id: "hack", zh: "黑客", en: "Hacker", line: "终端、代码、深夜的屏幕" },
+  { id: "game", zh: "游戏", en: "Gamer", line: "手柄与像素世界" },
+  { id: "bbq", zh: "烤肉", en: "BBQ", line: "炭火、烤串、美食" },
+  { id: "gym", zh: "健身", en: "Lifting", line: "杠铃、深蹲、硬拉" },
+  { id: "cam", zh: "摄影", en: "Camera & Drone", line: "相机和无人机" },
+];
+
+const title = `关于 - ${SITE_TITLE}`;
+const description = "关于李树孳孳";
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
-<Layout title={`关于 - ${SITE_TITLE}`} sidebar={true}>
-  <div class="max-w-4xl mx-auto px-6 pt-8 pb-16 rounded-2xl bg-white/80 dark:bg-[#0f0f1a]/80 overflow-hidden">
-    <Breadcrumb
-      crumbs={[
-        { title: "关于" },
-      ]}
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>"
     />
-    <section class="px-0">
-      <h1 class="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">关于</h1>
-      <div class="prose prose-gray dark:prose-invert max-w-none">
-        <p class="text-gray-500 dark:text-gray-400">内容准备中...</p>
-      </div>
-    </section>
-  </div>
-</Layout>
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonicalURL} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL("/og.png", Astro.site)} />
+  </head>
+
+  <body id="top">
+    <!-- 固定背景：逐像素绘制的赛博夜城屋顶露台 -->
+    <canvas
+      id="ab-canvas"
+      aria-hidden="true"
+      style="position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; z-index: 0; touch-action: pan-y; image-rendering: pixelated;"
+    ></canvas>
+
+    <div
+      style="position: relative; z-index: 1; pointer-events: none; display: flex; flex-direction: column;"
+    >
+      <section
+        data-screen-label="01 About"
+        data-back-to-home
+        style="min-height: 100vh; display: flex; flex-direction: column; padding: clamp(18px, 3.5vw, 48px); gap: clamp(12px, 3vh, 40px); box-sizing: border-box;"
+      >
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;"
+        >
+          <div
+            style="pointer-events: auto; font-family: var(--font-heading); font-size: 22px; display: flex; align-items: center; gap: var(--space-2); color: #fff0d0; text-shadow: 0 2px 0 rgba(10,8,24,0.7);"
+          >
+            <span style="width: 16px; height: 16px; background: #39d353; display: inline-block;"></span>
+            <a href="/" style="color: inherit;">{SITE_TITLE}</a>
+          </div>
+          <nav
+            aria-label="主导航"
+            style="pointer-events: auto; display: flex; gap: var(--space-1); flex-wrap: wrap;"
+          >
+            {
+              nav.map((l) => (
+                <a class={`ab-btn ${l.current ? "ab-btn-current" : ""}`} href={l.href}>
+                  {l.label}
+                </a>
+              ))
+            }
+          </nav>
+        </div>
+
+        <div
+          style="max-width: 600px; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2);"
+        >
+          <span
+            style="font-family: monospace; font-size: 14px; letter-spacing: 0.08em; color: #39d353; text-shadow: 0 0 10px rgba(57,211,83,0.5);"
+            >&gt; whoami_</span
+          >
+          <h1
+            style="font-size: clamp(44px, 6vw, 72px); line-height: 1.05; margin: 0; color: #fff6e6; text-shadow: 3px 3px 0 #c8283a;"
+          >
+            关于我
+          </h1>
+          <p
+            style="margin: 0; font-family: var(--font-heading); font-size: clamp(17px, 2vw, 26px); color: #f0d060; text-shadow: 0 2px 0 rgba(10,8,24,0.7);"
+          >
+            About me
+          </p>
+        </div>
+
+        <div
+          style="margin-top: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-2); max-width: 1040px;"
+        >
+          {
+            items.map((it) => (
+              <div class="ab-item">
+                <div class="ab-icon" data-icon={it.id} />
+                <div style="display: flex; flex-direction: column; min-width: 0;">
+                  <div style="font-family: var(--font-heading); font-size: 18px; color: #fff6e6;">{it.zh}</div>
+                  <div style="font-size: 12px; color: #f0d060;">{it.en}</div>
+                  <div style="font-size: 13px; color: #d8cce8;">{it.line}</div>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+    </div>
+
+    <script>
+      import { startScene, iconURLs } from "@/scripts/about-scene";
+
+      const canvas = document.getElementById("ab-canvas");
+      if (canvas instanceof HTMLCanvasElement) startScene(canvas);
+
+      const icons = iconURLs();
+      document.querySelectorAll<HTMLElement>("[data-icon]").forEach((el) => {
+        const url = icons[el.dataset.icon as keyof typeof icons];
+        if (url) el.style.backgroundImage = `url(${url})`;
+      });
+
+      // 后退键：/about 是顶层页面，后退回首页
+      if (document.querySelector("[data-back-to-home]")) {
+        const segs = window.location.pathname.replace(/\/$/, "").split("/").filter(Boolean);
+        if (segs.length <= 1) {
+          let canGoHome = true;
+          history.pushState({ home: true }, "");
+          window.addEventListener("popstate", () => {
+            if (canGoHome) {
+              canGoHome = false;
+              window.location.href = "/";
+            }
+          });
+        }
+      }
+    </script>
+  </body>
+</html>
