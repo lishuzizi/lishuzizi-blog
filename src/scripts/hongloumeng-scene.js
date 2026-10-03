@@ -53,17 +53,19 @@ export class HongloumengScene {
   hx(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
   rng(seed) { let s = seed; return () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   painter(x) { return (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), Math.max(1, Math.round(w)), Math.max(1, Math.round(h))); }; }
+  vn(x, y) { const h = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); }, ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy, u = fx * fx * (3 - 2 * fx), w = fy * fy * (3 - 2 * fy); return (h(ix, iy) * (1 - u) + h(ix + 1, iy) * u) * (1 - w) + (h(ix, iy + 1) * (1 - u) + h(ix + 1, iy + 1) * u) * w; }
+  mixc(h1, h2, t) { const a = this.hx(h1), b = this.hx(h2); return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
   bay(x, y) { return (this.BAY[(y & 3) * 4 + (x & 3)] + 0.5) / 16; }
   gradImg(x, W, H, ramp, curve) {
     const img = x.createImageData(W, H), d = img.data, C = ramp.map(h => this.hx(h)), n = C.length - 1;
     for (let y = 0; y < H; y++) { const f = Math.pow(y / Math.max(1, H - 1), curve) * n, b = Math.floor(f), fr = f - b;
-      for (let xx = 0; xx < W; xx++) { const c = C[Math.min(n, fr > this.bay(xx, y) ? b + 1 : b)], i = (y * W + xx) * 4; d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255; } }
+      for (let xx = 0; xx < W; xx++) { const c0 = C[Math.min(n, b)], c1 = C[Math.min(n, b + 1)], i = (y * W + xx) * 4, nz = (((xx * 73856093) ^ (y * 19349663)) & 255) / 255 - 0.5; for (let k = 0; k < 3; k++) d[i + k] = Math.max(0, Math.min(255, Math.round(c0[k] + (c1[k] - c0[k]) * fr + nz * 2.4))); d[i + 3] = 255; } }
     x.putImageData(img, 0, 0);
   }
   glow(r, hex) {
     r = Math.max(2, Math.round(r)); const key = r + hex; if (this.glowC[key]) return this.glowC[key];
     const s = 2 * r + 1, [c, x] = this.mk(s, s), img = x.createImageData(s, s), d = img.data, col = this.hx(hex);
-    for (let yy = 0; yy < s; yy++) for (let xx = 0; xx < s; xx++) { const dd = Math.hypot(xx - r, yy - r) / r; if (dd >= 1) continue; const a = Math.pow(1 - dd, 1.7), lv = Math.floor(a * 6 + this.bay(xx, yy)) / 6, i = (yy * s + xx) * 4; d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = Math.min(255, lv * 255); }
+    for (let yy = 0; yy < s; yy++) for (let xx = 0; xx < s; xx++) { const dd = Math.hypot(xx - r, yy - r) / r; if (dd >= 1) continue; const a = Math.pow(1 - dd, 1.7), lv = Math.max(0, a + ((((xx * 73856093) ^ (yy * 19349663)) & 255) / 255 - 0.5) * 0.025), i = (yy * s + xx) * 4; d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = Math.min(255, lv * 255); }
     x.putImageData(img, 0, 0); return this.glowC[key] = c;
   }
   blit(x, c, cx, cy, a) { const rr = (c.width - 1) / 2; x.globalAlpha = Math.max(0, Math.min(1, a)); x.drawImage(c, Math.round(cx - rr), Math.round(cy - rr)); x.globalAlpha = 1; }
@@ -79,7 +81,7 @@ export class HongloumengScene {
     c.width = PW; c.height = PH; this.ctx.imageSmoothingEnabled = false;
     tc.width = Math.round(W * dpr); tc.height = Math.round(H * dpr);
     this.gy = Math.round(PH * 0.66); this.wins = []; this.plaques = [];
-    this.buildSky(); this.buildMid(); this.buildGround(); this.buildPlum(); this.buildCrowd(); this.buildFx();
+    this.buildSky(); this.buildMid(); this.buildGround(); this.buildPlum(); this.buildCrowd(); this.buildFx(); this.buildGrade();
   }
 
   buildSky() {
@@ -90,38 +92,58 @@ export class HongloumengScene {
     for (let yy = -mr; yy <= mr; yy++) for (let xx = -mr; xx <= mr; xx++) { const d = Math.hypot(xx, yy) / mr; if (d > 1.02) continue; let col = d > 0.86 ? '#f6e4cc' : '#fff4e2'; if ((xx + yy) / mr > 0.35 && this.bay(xx + 64, yy + 64) < (xx + yy) / mr - 0.35) col = '#efdac2'; R(mx + xx, my + yy, 1, 1, col); }
     [[-0.35, -0.25, 0.24], [0.3, 0.2, 0.17], [-0.05, 0.5, 0.13]].forEach(([a, b, s]) => { const cx = Math.round(mx + a * mr), cy = Math.round(my + b * mr), rr = Math.max(1, Math.round(s * mr)); for (let yy = -rr; yy <= rr; yy++) for (let xx = -rr; xx <= rr; xx++) if (xx * xx + yy * yy <= rr * rr) R(cx + xx, cy + yy, 1, 1, '#ecd6c0'); });
     const ridge = (base, amp, sd, body, lit, cap) => { for (let xx = 0; xx < FW; xx++) { const X = xx / u, hgt = amp * (0.5 + 0.3 * Math.sin(X * 0.011 + sd) + 0.15 * Math.sin(X * 0.034 + sd * 2) + 0.05 * Math.sin(X * 0.1 + sd)), top = Math.round(base - hgt); R(xx, top, 1, gy + 2 - top, body); const sn = Math.max(1, Math.round(q(4) * (0.45 + 0.55 * Math.sin(X * 0.045 + sd)))); for (let k = 0; k < sn; k++) if (k === 0 || this.bay(xx, top + k) < 1 - k / sn) R(xx, top + k, 1, 1, cap); if (r() < 0.08) R(xx, top + sn + 1 + Math.floor(r() * q(6)), 1, q(2), lit); } };
+    const cloud = (cx, cy, w, h, sd) => { for (let yy = -h; yy <= h; yy++) for (let xx = -w; xx <= w; xx++) { const nz = this.vn(xx * 0.09 + sd, yy * 0.22 + sd) * 0.55 + this.vn(xx * 0.25 + sd, yy * 0.5) * 0.25, d = (xx / w) ** 2 + (yy / h) ** 2 * 1.5 + (nz - 0.4) * 0.8; if (d > 1) continue; const top = yy < -h * 0.15 && d < 0.84, rim = yy < 0 && d > 0.8, sh = yy > h * 0.25 || (this.vn(xx * 0.15 + sd, yy * 0.4 + 9) > 0.62 && yy > 0); R(cx + xx, cy + yy, 1, 1, rim ? '#fbe6dc' : top ? (this.vn(xx * 0.3, yy * 0.6) < 0.45 ? '#f6d2cc' : '#f0c0c4') : sh ? '#b68ca8' : '#d4a0b4'); } };
+    [[0.14, 28, 70, 7], [0.36, 56, 90, 8], [0.84, 74, 80, 6], [0.5, 96, 110, 7], [0.2, 118, 90, 5], [0.76, 112, 60, 5], [0.05, 70, 50, 5]].forEach(([fx, cyy, cw, ch], i) => { const cx = M + Math.round(PW * fx), cy = q(cyy), w = Math.round(q(cw) * 0.9), h = q(ch); if (Math.abs(cx - mx) < w + mr * 2 && Math.abs(cy - my) < h + mr * 2) return; cloud(cx, cy, w, h, i * 17); });
     ridge(gy - q(34), q(44), 1.2, '#a292ac', '#b8a8bc', '#ece2e8'); ridge(gy - q(16), q(28), 3.4, '#8f7c9c', '#a896b0', '#e0d4de');
+    { const wt0 = gy - q(34); for (let xx = 0; xx < FW; xx += 3 + Math.floor(r() * 4)) { const th = q(7 + r() * 10), hw = Math.max(2, Math.round(th * 0.28)), pine = r() < 0.6; for (let k = 0; k < th; k++) { const f = k / th, w2 = pine ? Math.round(hw * f * 1.1) : (k > th * 0.55 ? Math.round(hw * Math.sin((f - 0.55) / 0.45 * 3) * 1.2) : 0); for (let a = -w2; a <= w2; a++) R(xx + a, wt0 - th + k, 1, 1, pine ? (k % 4 === 0 && Math.abs(a) < w2 ? '#e6dcea' : (a < 0 ? '#4c4270' : '#3a3158')) : (a === 0 ? '#2e2640' : '#4a4066')); if (!pine && k > th * 0.55 && k < th) { } } if (!pine) R(xx, wt0 - Math.round(th * 0.45), 1, Math.round(th * 0.45), '#2e2640'); } }
   }
 
   roofP(cx, ey, hw, h) {
     const R = this.B, q = this.q, top = ey - h, rw = Math.round(hw * 0.36), tip = Math.max(2, q(5));
     const halfAt = k => Math.round(rw + (hw - rw) * Math.pow(k / Math.max(1, h - 1), 0.8));
-    for (let k = 0; k < h; k++) { const half = halfAt(k), yy = top + k; for (let xx = -half; xx <= half; xx++) { const m = ((xx % 3) + 3) % 3; R(cx + xx, yy, 1, 1, k === h - 1 ? (m === 0 ? '#6a6272' : '#1a1620') : m === 0 ? '#4c4452' : m === 1 ? '#3a3442' : '#2c2834'); } }
+    for (let k = 0; k < h; k++) { const half = halfAt(k), yy = top + k; for (let xx = -half; xx <= half; xx++) { const m = ((xx % 3) + 3) % 3; R(cx + xx, yy, 1, 1, k === h - 1 ? (m === 0 ? '#9a92a6' : m === 1 ? '#22202c' : '#14101a') : k % 3 === 0 ? (m === 0 ? '#3a3442' : '#1e1a26') : m === 0 ? (k % 3 === 1 ? '#6a6278' : '#504858') : m === 1 ? '#3a3442' : '#2a2632'); } }
     for (const sd of [-1, 1]) for (let i = 1; i <= tip; i++) { const xx = cx + sd * (hw + i), yy = ey - 1 - Math.round(i * i / tip * 0.8); R(xx, yy, 1, 2, '#2c2834'); if (i === tip) { R(xx, yy - 1, 1, 1, '#2c2834'); R(xx, yy + 2, 1, 1, '#8a6a20'); R(xx, yy + 3, 1, 1, '#f0c850'); } }
     R(cx - hw, ey, 2 * hw + 1, 1, '#140e12');
+    for (let xx = -hw + 1; xx <= hw - 1; xx++) { const bv = this.bay(cx + xx, 7); if (bv < 0.42) { const L = 1 + Math.floor(this.bay(xx, 3) * q(3.2)); R(cx + xx, ey + 1, 1, L, '#cfdcee'); R(cx + xx, ey + L, 1, 1, '#ffffff'); } }
     for (let xx = -hw; xx <= hw; xx++) { const ax = Math.abs(xx), k0 = ax <= rw ? 0 : Math.round(Math.pow((ax - rw) / Math.max(1, hw - rw), 1 / 0.8) * (h - 1)), dep = Math.max(1, Math.round(h * 0.42 + Math.sin(xx * 0.55 + cx) * q(1.2) + Math.sin(xx * 0.17) * q(1.5)));
       for (let k = k0; k < Math.min(h - 1, k0 + dep); k++) R(cx + xx, top + k, 1, 1, k === k0 + dep - 1 ? '#d6ccd8' : '#fbf7f6'); }
     const rh = Math.max(2, q(3)); R(cx - rw - 1, top - rh, 2 * rw + 3, rh, '#2a2430'); R(cx - rw - 1, top - rh - 1, 2 * rw + 3, Math.max(1, q(1.5)), '#fbf7f6');
-    for (const sd of [-1, 1]) { const ex = cx + sd * (rw + 1) - (sd > 0 ? 1 : 0); R(ex, top - rh - q(3), 2, q(3), '#2a2430'); R(ex - sd, top - rh - q(4), 2, q(1.5), '#2a2430'); R(ex, top - rh - q(3) - 1, 2, 1, '#fbf7f6'); }
+    for (const sd of [-1, 1]) { const ex = cx + sd * (rw + 1) - (sd > 0 ? 1 : 0); R(ex, top - rh - q(3), 2, q(3), '#2a2430'); R(ex - sd, top - rh - q(4), 2, q(1.5), '#2a2430'); R(ex, top - rh - q(3) - 1, 2, 1, '#fbf7f6'); R(ex - sd, top - rh - q(2), 1, 1, '#e2b84a'); R(ex + sd, top - rh - q(1), 1, 1, '#e2b84a'); }
   }
   hall(cx, by, w, bh, rh, tiers, name) {
     const R = this.B, q = this.q, r = this.r; cx = Math.round(cx); w = Math.round(w);
-    let top = by - bh;
-    const body = (bw, top, bh, nm) => { const bx = Math.round(cx - bw / 2);
+    let top = by - bh; const bw0 = Math.round(w * 0.74);
+    const body = (bw, top, bh, nm, gr) => { const bx = Math.round(cx - bw / 2);
       for (let yy = 0; yy < bh; yy++) for (let xx = 0; xx < bw; xx++) R(bx + xx, top + yy, 1, 1, yy / bh > 0.5 + this.bay(bx + xx, top + yy) * 0.4 ? '#8e2e20' : '#a8382a');
-      const n = Math.max(2, Math.round(bw / q(18))), ww = bw / n, sh = Math.max(2, q(3.5));
-      for (let i = 0; i < n; i++) { const wx = Math.round(bx + ww * i + ww * 0.2), wd = Math.round(ww * 0.6), wy = top + sh + Math.max(2, Math.round((bh - sh) * 0.22)), wh = Math.max(3, Math.round((bh - sh) * 0.6));
-        for (let yy = 0; yy < wh; yy++) for (let xx = 0; xx < wd; xx++) { const grid = xx % 3 === 1 || yy % 3 === 1, d = Math.hypot((xx - wd / 2) / (wd / 2), (yy - wh / 2) / (wh / 2)); R(wx + xx, wy + yy, 1, 1, grid ? '#7a2a1c' : d * 0.7 + this.bay(wx + xx, wy + yy) * 0.45 < 0.7 ? '#ffd890' : '#f0a85a'); }
-        R(wx - 1, wy - 1, wd + 2, 1, '#e2b84a'); R(wx - 1, wy + wh, wd + 2, 1, '#e2b84a');
-        this.wins.push({ x: wx + wd / 2, y: wy + wh / 2, r: Math.max(wd, wh) * 1.2, ph: r() * 6 }); }
-      for (let i = 0; i <= n; i++) { const pxx = Math.round(bx + ww * i) - 1; R(pxx, top, 2, bh, '#6e2014'); R(pxx, top, 1, bh, '#9a3a28'); }
-      const cols = ['#2f7f74', '#e2b84a', '#2a5a9a', '#e2b84a'], cw = Math.max(2, q(3));
-      for (let xx = 0; xx < bw; xx++) { const ci = Math.floor(xx / cw) % 4; R(bx + xx, top, 1, sh, cols[ci]); if (ci === 0 && xx % cw === 1) R(bx + xx, top + 1, 1, 1, '#f4ecd8'); }
-      R(bx, top + sh, bw, 1, '#1a1216');
-      if (nm) { const pw = Math.min(Math.round(bw * 0.38), q(34)), ph = Math.max(6, q(9)), px0 = Math.round(cx - pw / 2), py0 = top + sh + 1; R(px0 - 1, py0 - 1, pw + 2, ph + 2, '#e2b84a'); R(px0, py0, pw, ph, '#1e1412'); this.plaques.push({ x: cx, y: py0 + ph / 2, w: pw, h: ph, t: nm }); }
+      const sh = Math.max(4, q(5)), n = gr ? 2 * Math.max(1, Math.round(bw / q(24) / 2)) + 1 : Math.max(3, Math.round(bw / q(18))), ww = bw / n, mid = (n - 1) / 2, lp = Math.max(3, q(6)), W = this.wins;
+      for (let i = 0; i < n; i++) { const x0 = Math.round(bx + ww * i) + 2, x1 = Math.round(bx + ww * (i + 1)) - 2, wd = x1 - x0, wy = top + sh + 3;
+        if (gr && i === mid) { const dh = bh - sh - 3; (this.doors = this.doors || []).push({ x: x0 + 0, y: top + sh + 3, w: wd, h: dh, ph: r() * 6 });
+          for (let yy = 0; yy < dh; yy++) for (let xx = 0; xx < wd; xx++) { const fy = yy / dh, nz = this.bay(x0 + xx, wy + yy); R(x0 + xx, wy + yy, 1, 1, fy > 0.86 ? (yy % 3 === 0 ? '#6a3a22' : '#8a4a28') : fy < 0.4 ? (nz < 0.15 ? '#ffc870' : '#ffdf9c') : fy < 0.7 ? (nz < 0.2 ? '#f0a85a' : '#f8c474') : '#e8a860'); }
+          const sx = x0 + Math.round(wd * 0.12), sw2 = Math.max(3, Math.round(wd * 0.17)), sy = wy + Math.round(dh * 0.14), sh2 = Math.round(dh * 0.36); R(sx, sy - 1, sw2, 1, '#6a3a22'); R(sx, sy + sh2, sw2, 1, '#6a3a22'); for (let yy = 0; yy < sh2; yy++) for (let xx = 0; xx < sw2; xx++) R(sx + xx, sy + yy, 1, 1, (yy % 4 === 1 || yy % 4 === 2) && xx % 3 !== 1 && xx > 0 && xx < sw2 - 1 ? '#3a2a28' : '#f6eede');
+          const tx = x0 + Math.round(wd * 0.3), tw = Math.round(wd * 0.4), ty = wy + Math.round(dh * 0.6), tf = wy + Math.round(dh * 0.86);
+          R(tx, ty, tw, 1, '#c88a54'); R(tx, ty + 1, tw, 2, '#7a4626'); R(tx + 1, ty + 3, 1, tf - ty - 3, '#4a2616'); R(tx + tw - 2, ty + 3, 1, tf - ty - 3, '#4a2616'); R(tx + 2, ty - 3, 2, 3, '#2f7f74'); R(tx + 2, ty - 4, 2, 1, '#5fb0a0'); R(tx + tw - 5, ty - 2, 3, 2, '#e8dcc0');
+          for (const sd of [0, 1]) { const cx2 = sd ? tx + tw + 2 : tx - 4; R(cx2, ty - 1, 3, 1, '#a0643a'); R(cx2, ty, 3, 3, '#5a3018'); R(cx2, ty + 3, 1, tf - ty - 3, '#3a2010'); R(cx2 + 2, ty + 3, 1, tf - ty - 3, '#3a2010'); }
+          const lx = x0 + Math.round(wd * 0.8); R(lx, wy, 1, 3, '#3a2a28'); R(lx - 1, wy + 3, 3, 4, '#ee6a3c'); R(lx, wy + 4, 1, 2, '#ffd890'); R(lx, wy + 7, 1, 2, '#d8283a');
+          R(x0 - 1, wy - 1, wd + 2, 1, '#e2b84a'); R(x0 - 1, wy, 1, dh, '#5a1c10'); R(x0 + wd, wy, 1, dh, '#5a1c10');
+          W.push({ x: x0 + wd / 2, y: wy + dh * 0.45, r: Math.max(wd, dh) * 1.15, ph: r() * 6, I: 0.42 }); continue; }
+        const wh = Math.max(6, bh - sh - 3 - (gr ? lp + 2 : 3));
+        for (let yy = 0; yy < wh; yy++) for (let xx = 0; xx < wd; xx++) { const grid = xx % 4 === 0 || yy % 4 === 0 || xx === wd - 1 || yy === wh - 1 || (xx + yy) % 9 === 0, d = Math.hypot((xx - wd / 2) / (wd / 2), (yy - wh / 2) / (wh / 2)); R(x0 + xx, wy + yy, 1, 1, grid ? '#7a2a1c' : d * 0.7 + this.bay(x0 + xx, wy + yy) * 0.45 < 0.7 ? '#ffd890' : '#f0a85a'); }
+        R(x0 - 1, wy - 1, wd + 2, 1, '#e2b84a'); R(x0 - 1, wy + wh, wd + 2, 1, '#e2b84a'); R(x0 - 2, wy - 2, wd + 4, 1, '#5a1c10'); R(x0 - 2, wy - 1, 1, wh + 2, '#5a1c10'); R(x0 + wd + 1, wy - 1, 1, wh + 2, '#5a1c10');
+        if (gr) { const py0 = wy + wh + 1; for (let yy = 0; yy < lp; yy++) for (let xx = -1; xx <= wd; xx++) R(x0 + xx, py0 + yy, 1, 1, yy === 0 ? '#c89a38' : xx === -1 || xx === wd || yy === lp - 1 || (xx % 5 === 2 && yy > 0 && yy < lp - 1) ? '#5a1c10' : yy % 3 === 1 ? '#8e2e20' : '#a8382a'); }
+        else { R(x0 - 2, wy + wh + 1, wd + 4, 1, '#c8bcc4'); for (let xx = -1; xx <= wd; xx += 3) R(x0 + xx, wy + wh + 1, 1, 1, '#fbf7f6'); }
+        W.push({ x: x0 + wd / 2, y: wy + wh / 2, r: Math.max(wd, wh) * 1.2, ph: r() * 6 }); }
+      for (let i = 0; i <= n; i++) { const pxx = Math.round(bx + ww * i) - 1; R(pxx, top, 3, bh, '#8e2e20'); R(pxx, top, 1, bh, '#c4584a'); R(pxx + 2, top, 1, bh, '#5a1c10'); if (gr) { R(pxx - 1, top + bh - 2, 5, 2, '#cfc6d4'); R(pxx - 1, top + bh - 2, 5, 1, '#f4eef6'); if (i > 0 && i < n && i !== mid && i !== mid + 1) this.lants2.push({ x: pxx + 1, y: top + sh + 1, s: this.u * 0.8, ph: i * 1.3 + bw }); } }
+            const cols = ['#2f7f74', '#e2b84a', '#2a5a9a', '#e2b84a'], cw = Math.max(2, q(3));
+      for (let xx = 0; xx < bw; xx++) { const ci = Math.floor(xx / cw) % 4, dx = Math.abs((xx % cw) - cw / 2); for (let y = 0; y < sh; y++) { let col = cols[ci]; if (y === 0) col = '#1a1216'; else if (y === 1) col = ci === 0 || ci === 2 ? '#9ec8e8' : '#fff0b0'; else if (y === sh - 1) col = '#1a1216'; else if (dx + Math.abs(y - sh / 2) < cw * 0.42) col = ci % 2 ? '#7a2a1c' : '#f4ecd8'; R(bx + xx, top + y, 1, 1, col); } }
+      for (let xx = 0; xx < bw; xx++) { R(bx + xx, top + sh, 1, 1, '#1a1216'); R(bx + xx, top + sh + 1, 1, 1, xx % 4 < 2 ? '#c89a38' : '#2a5a9a'); }
+      if (nm) { const pw = Math.min(Math.round(bw * 0.24), q(30)), ph = Math.max(6, q(9)), px0 = Math.round(cx - pw / 2), py0 = top + sh + 1; R(px0 - 1, py0 - 1, pw + 2, ph + 2, '#e2b84a'); R(px0, py0, pw, ph, '#1e1412'); this.plaques.push({ x: cx, y: py0 + ph / 2, w: pw, h: ph, t: nm }); }
     };
-    body(Math.round(w * 0.74), top, bh, name);
-    for (let t = 0; t < tiers; t++) { const hw = Math.round(w * (0.58 - t * 0.14)), h = Math.round(rh * (1 - t * 0.14)); this.roofP(cx, top, hw, h); top -= Math.round(h * 0.86); if (t < tiers - 1) { const ub = Math.round(bh * 0.55); body(Math.round(w * 0.47), top - ub, ub, null); top -= ub; } }
+    body(bw0, top, bh, name, true);
+    { const pw = bw0 + q(12), pf = Math.max(6, q(8)), px0 = Math.round(cx - pw / 2), sw = Math.max(12, q(16)), ssh = Math.max(1, Math.floor(pf / 3));
+      for (let yy = 0; yy < pf; yy++) for (let xx = 0; xx < pw; xx++) { const rowN = Math.floor(yy / Math.max(2, q(2.5))), jt = (xx + (rowN & 1) * 4) % 9 === 0; R(px0 + xx, by + yy, 1, 1, yy === 0 ? '#fbf7f6' : yy === 1 ? '#e4dcea' : yy % Math.max(2, q(2.5)) === 0 || jt ? '#9a90a4' : this.bay(px0 + xx, by + yy) < 0.2 ? '#c4bace' : '#d4cada'); }
+      for (let k = 0; k < 3; k++) { const stw = sw + k * q(3), sx2 = Math.round(cx - stw / 2); for (let yy = 0; yy < ssh; yy++) for (let xx = 0; xx < stw; xx++) R(sx2 + xx, by + 1 + k * ssh + yy, 1, 1, yy === 0 ? '#fbf7f6' : xx === 0 || xx === stw - 1 ? '#8a8096' : yy === ssh - 1 ? '#a89eb4' : '#e4dcea'); }
+      const rh2 = Math.max(3, q(3)); for (const sd of [-1, 1]) for (let xx = Math.round(sw / 2) + q(6); xx < pw / 2 - 1; xx++) { const X2 = cx + sd * xx; R(X2, by - rh2, 1, 1, '#fbf7f6'); R(X2, by - rh2 + 1, 1, 1, '#a89eb4'); if (xx % 5 === 0) R(X2, by - rh2, 1, rh2, xx % 10 === 0 ? '#d4cada' : '#c4bace'); } }
+    for (let t = 0; t < tiers; t++) { const hw = Math.round(w * (0.58 - t * 0.14)), h = Math.round(rh * (1 - t * 0.14)); this.roofP(cx, top, hw, h); top -= Math.round(h * 0.86); if (t < tiers - 1) { const ub = Math.round(bh * 0.55); body(Math.round(w * 0.47), top - ub, ub, null, false); top -= ub; } }
     R(cx - 1, top - q(7), 2, q(7), '#c89a38'); R(cx - 2, top - q(4), 4, Math.max(2, q(2)), '#e2b84a'); R(cx - 1, top - q(9), 2, q(2), '#e2b84a');
   }
   bamboo(bx, wt) {
@@ -133,34 +155,38 @@ export class HongloumengScene {
   }
   buildMid() {
     const { FW, PW, M, gy, q, mob } = this, [c, x] = this.mk(FW, this.PH), R = this.B = this.painter(x); this.L1 = c; const r = this.r = this.rng(5);
-    const wt = this.wallTop = gy - q(44);
-    this.bamboo(M + PW * 0.46, wt); this.bamboo(M + PW * 0.965, wt);
+    const wt = this.wallTop = gy - q(34); this.lants2 = [];
+    this.bamboo(M + PW * 0.31, wt); this.bamboo(M + PW * 0.655, wt);
     const hw_ = (f, cap) => Math.min(PW * f, q(cap));
-    this.hall(M + PW * 0.1, wt + q(4), hw_(0.2, 96), q(26), q(20), 1, '蘅芜苑');
-    this.hall(M + PW * 0.57, wt + q(4), hw_(0.24, 118), q(30), q(26), 2, '怡红院');
-    this.hall(M + PW * 0.9, wt + q(4), hw_(0.2, 100), q(28), q(22), 1, '潇湘馆');
-    const gx = Math.round(M + PW * (mob ? 0.8 : 0.74)), gr = q(20), gc = gy - Math.round(gr * 0.98), ring = Math.max(2, q(3)), WC = ['#cc5642', '#bb4633', '#a43928'];
+    const gx = Math.round(M + PW * (mob ? 0.8 : 0.74)), gr = q(14), gc = gy - Math.round(gr * 0.98), ring = Math.max(2, q(3)), WC = ['#cc5642', '#bb4633', '#a43928'];
     for (let yy = wt; yy < gy; yy++) { const f = (yy - wt) / (gy - wt); for (let xx = 0; xx < FW; xx++) { const d = Math.hypot(xx - gx, yy - gc); let col;
       if (d < gr) { if (yy > gc + gr * 0.3) col = this.bay(xx, yy) < 0.15 ? '#e8dee6' : '#fbf6f2'; else col = (yy - (gc - gr)) / (gr * 1.3) > this.bay(xx, yy) * 0.6 + 0.4 ? '#f6e2d0' : '#efd4c4'; }
       else if (d < gr + ring) col = d < gr + 1 ? '#8a3020' : (yy < gc ? '#e2d6ce' : '#cbbeb8');
       else col = WC[Math.max(0, Math.min(2, Math.floor(f * 2.3 + this.bay(xx, yy) - 0.6)))];
       R(xx, yy, 1, 1, col); } }
+    { const bh2 = Math.max(3, q(4)), bw2 = Math.max(6, q(9)); let row = 0; for (let yy = wt + 2; yy < gy - 2; yy += bh2, row++) { for (let xx = 0; xx < FW; xx++) if (Math.hypot(xx - gx, yy - gc) > gr + ring + 1) R(xx, yy, 1, 1, '#8a2c20'); for (let xx = (row & 1) * (bw2 >> 1); xx < FW; xx += bw2) { if (Math.hypot(xx - gx, yy - gc) > gr + ring + 1) R(xx, yy + 1, 1, bh2 - 1, '#98321f'); } }
+      for (let yy = wt + 1; yy < wt + q(4); yy++) for (let xx = 0; xx < FW; xx++) R(xx, yy, 1, 1, yy < wt + 3 ? '#6e2216' : '#a43928'); }
     for (let xx = q(10); xx < FW; xx += q(22)) { if (Math.abs(xx - gx) < gr + ring + 2) continue; R(xx, wt + q(4), 1, gy - wt - q(8), '#9a3424'); R(xx + 1, wt + q(4), 1, gy - wt - q(8), '#d6644e'); }
     const inG = (a, b) => Math.hypot(a - gx, b - gc) < gr - 1;
     const tr = (a, b, c2, d2, th) => this.pl((xa, ya, w, h, col) => { if (inG(xa, ya)) R(xa, ya, w, h, col); }, a, b, c2, d2, th, '#3a2a28');
     tr(gx - gr * 0.25, gc + gr * 0.6, gx - gr * 0.05, gc - gr * 0.2, Math.max(1, q(2))); tr(gx - gr * 0.05, gc - gr * 0.2, gx + gr * 0.4, gc - gr * 0.5, 1); tr(gx - gr * 0.12, gc + gr * 0.1, gx - gr * 0.55, gc - gr * 0.3, 1);
     for (let i = 0; i < 18; i++) { const a = Math.round(gx + (r() - 0.5) * gr * 1.3), b = Math.round(gc - gr * 0.65 + r() * gr * 0.8); if (inG(a, b)) { R(a, b, 1, 1, '#d8304a'); if (r() < 0.5 && inG(a + 1, b)) R(a + 1, b, 1, 1, '#e86a7a'); } }
-    [0.07, 0.2, 0.33, 0.46, 0.62, 0.88].forEach(fx => { const wx = Math.round(M + PW * fx); if (Math.abs(wx - gx) < gr + q(14)) return; const sz = q(14), y0 = wt + q(13), x0 = wx - (sz >> 1);
+    [0.285, 0.345].forEach(fx => { const wx = Math.round(M + PW * fx); if (Math.abs(wx - gx) < gr + q(14)) return; const sz = q(9), y0 = wt + q(7), x0 = wx - (sz >> 1);
       R(x0 - 2, y0 - 2, sz + 4, sz + 4, '#dcd0c8'); R(x0 - 2, y0 + sz + 1, sz + 4, 1, '#b8aaa4');
-      for (let yy = 0; yy < sz; yy++) for (let xx = 0; xx < sz; xx++) { const lat = (xx + yy) % 4 === 0 || (xx - yy + 400) % 4 === 0, dd = Math.hypot(xx - sz / 2, yy - sz / 2) / (sz * 0.6); R(x0 + xx, y0 + yy, 1, 1, lat ? '#6a2418' : dd + this.bay(xx, yy) * 0.4 < 0.75 ? '#ffd890' : '#e8a45a'); }
+      for (let yy = 0; yy < sz; yy++) for (let xx = 0; xx < sz; xx++) { const lat = (xx + yy) % 3 === 0 || (xx - yy + 399) % 3 === 0 || xx === 0 || yy === 0 || xx === sz - 1 || yy === sz - 1, dd = Math.hypot(xx - sz / 2, yy - sz / 2) / (sz * 0.6); R(x0 + xx, y0 + yy, 1, 1, lat ? '#6a2418' : dd + this.bay(xx, yy) * 0.4 < 0.75 ? '#ffd890' : '#e8a45a'); }
       this.wins.push({ x: wx, y: y0 + sz / 2, r: sz, ph: r() * 6, I: 0.22 }); });
+    { const pb = Math.max(2, q(3)), pt2 = gy - pb - q(6); for (let yy = pt2; yy < gy - pb; yy++) for (let xx = 0; xx < FW; xx++) { if (Math.hypot(xx - gx, yy - gc) < gr + ring + 1) continue; const row = Math.floor((yy - pt2) / 3), jt = (xx + (row & 1) * 5) % 10 === 0; R(xx, yy, 1, 1, yy === pt2 ? '#eadede' : (yy - pt2) % 3 === 0 ? '#9e8e98' : jt ? '#9e8e98' : this.bay(xx, yy) < 0.2 ? '#b8a8b0' : '#c6b8c0'); } }
     const ph0 = Math.max(2, q(3)); R(0, gy - ph0, FW, ph0, '#d8ccc4'); R(0, gy - ph0, FW, 1, '#ece2dc'); for (let xx = 0; xx < FW; xx += q(12)) if (!inG(xx, gy - 2)) R(xx, gy - ph0, 1, ph0, '#b8aca8');
     const ch = Math.max(3, q(4));
     for (let k = 0; k < ch; k++) for (let xx = 0; xx < FW; xx++) { const m = xx % 3; R(xx, wt - ch + k, 1, 1, k === ch - 1 ? (m === 0 ? '#6a6272' : '#1a1620') : m === 0 ? '#4c4452' : m === 1 ? '#3a3442' : '#2c2834'); }
     R(0, wt, FW, 1, '#1a1216');
     for (let xx = 0; xx < FW; xx++) { const sh = Math.max(1, Math.round(q(2.5) + Math.sin(xx * 0.3) * 0.8 + Math.sin(xx * 0.07 + 1) * q(1.2))); R(xx, wt - ch - sh + 1, 1, sh, '#fbf7f6'); if (this.bay(xx, 0) < 0.5) R(xx, wt - ch + 1, 1, 1, '#dcd2dc'); }
     for (let xx = 0; xx < FW; xx += 2 + Math.floor(r() * 5)) if (r() < 0.5) R(xx, wt + 1, 1, 1 + Math.floor(r() * 2), '#eef0f6');
-    this.lants = [0.05, 0.2, 0.36, 0.5, 0.64, 0.86].map((fx, i) => ({ x: Math.round(M + PW * fx), y: wt + 1, s: this.u * 0.9, ph: i * 1.7 })).filter(l => Math.abs(l.x - gx) > gr + q(10));
+    const pbH = Math.max(6, q(8));
+    this.hall(M + PW * 0.12, gy - pbH, hw_(0.25, 150), q(50), q(28), 1, '蘅芜苑');
+    this.hall(M + PW * 0.5, gy - pbH, hw_(0.28, 190), q(58), q(34), 2, '怡红院');
+    this.hall(M + PW * 0.88, gy - pbH, hw_(0.25, 160), q(52), q(30), 1, '潇湘馆');
+    this.lants = this.lants2;
     this.lants.push({ x: gx - gr - q(7), y: wt + 1, s: this.u * 1.15, ph: 4 }, { x: gx + gr + q(7), y: wt + 1, s: this.u * 1.15, ph: 5 });
   }
   rock(cx, base, sz) {
@@ -171,9 +197,15 @@ export class HongloumengScene {
   }
   buildGround() {
     const { FW, PH, PW, M, gy, q } = this, [c, x] = this.mk(FW, PH), R = this.B = this.painter(x); this.L2 = c; const r = this.rng(12);
-    const [gc, gx] = this.mk(FW, PH - gy); this.gradImg(gx, FW, PH - gy, ['#fdfaf6', '#f6f0f0', '#ece4ea', '#e0d6e0', '#d4c8d6'], 1.1); x.drawImage(gc, 0, gy);
-    for (let i = 0; i < 26; i++) { const y0 = gy + 3 + Math.floor(r() * (PH - gy - 3)), x0 = Math.floor(r() * FW), L = q(20 + r() * 60); for (let xx = 0; xx < L; xx++) if (this.bay(x0 + xx, y0) < 0.5 * Math.sin(xx / L * Math.PI) + 0.1) R(x0 + xx, y0, 1, 1, '#ddd2e0'); for (let xx = 2; xx < L - 2; xx++) if (this.bay(x0 + xx, y0 - 1) < 0.4) R(x0 + xx, y0 - 1, 1, 1, '#ffffff'); }
-    for (let i = 0; i < FW * (PH - gy) / 90; i++) R(r() * FW, gy + r() * (PH - gy), 1, 1, r() < 0.5 ? '#ffffff' : '#e6dce8');
+    const [gc, gx] = this.mk(FW, PH - gy); this.gradImg(gx, FW, PH - gy, ['#fdfaf6', '#f6f0f0', '#ece4ea', '#e0d6e0', '#d4c8d6'], 0.25); x.drawImage(gc, 0, gy);
+    for (let yy = gy + 2; yy < PH; yy++) { const f = (yy - gy) / (PH - gy); for (let xx = 0; xx < FW; xx++) { const v = this.vn(xx * 0.012, yy * (0.05 + f * 0.03)) * 0.65 + this.vn(xx * 0.05, yy * 0.14) * 0.35; if (v > 0.6) R(xx, yy, 1, 1, 'rgba(255,255,255,' + Math.min(0.55, (v - 0.6) * 2.6) + ')'); else if (v < 0.4) R(xx, yy, 1, 1, 'rgba(140,118,186,' + Math.min(0.2, (0.4 - v) * 0.8) + ')'); } }
+    { const drift = (cx, cy, w, h) => { for (let yy = 0; yy < h; yy++) { const hw = Math.round(w * Math.sqrt(1 - ((h - 1 - yy) / h) ** 2)); for (let xx = -hw; xx <= hw; xx++) R(cx + xx, cy + yy - h, 1, 1, yy === 0 ? '#ffffff' : yy > h * 0.7 || xx > hw * 0.5 ? '#cfc4de' : this.bay(cx + xx, cy + yy) < 0.3 ? '#f2ecf6' : '#fbf8fc'); } };
+      for (let i = 0; i < 14; i++) drift(M + Math.floor(r() * PW), gy + q(4 + r() * 9), q(10 + r() * 22), Math.max(2, q(2 + r() * 2)));
+      const slant = (cx, by) => { const U2 = Math.max(2, q(1.8)); const bw = U2 * 8, sx = cx - (bw >> 1); R(sx, by - U2 * 2, bw, U2 * 2, '#8e8698'); R(sx, by - U2 * 2, bw, 1, '#d6cedc'); R(sx + U2, by - U2 * 6, bw - U2 * 2, U2 * 4, '#a69eb2'); R(sx + U2, by - U2 * 6, 1, U2 * 4, '#cfc6d6'); R(sx + U2 * 2, by - U2 * 12, U2 * 4, U2 * 6, '#b2aabe'); for (let yy = 0; yy < U2 * 4; yy++) for (let xx = 0; xx < U2 * 2; xx++) R(cx - U2 + xx, by - U2 * 11 + yy, 1, 1, yy % 3 === 0 ? '#ffb858' : '#ffd890'); R(sx, by - U2 * 14, bw, U2 * 2, '#8e8698'); R(sx - U2, by - U2 * 15, bw + U2 * 2, U2 * 2, '#a69eb2'); R(sx - U2, by - U2 * 16, bw + U2 * 2, U2, '#ffffff'); R(cx - U2, by - U2 * 18, U2 * 2, U2 * 2, '#cfc6d6'); R(cx - U2, by - U2 * 19, U2 * 2, U2, '#ffffff'); };
+      slant(M + Math.round(PW * 0.4), gy + q(30)); slant(M + Math.round(PW * 0.6), gy + q(30));
+      const shrub = (cx, by, rr) => { for (let yy = -rr; yy <= 0; yy++) for (let xx = -rr; xx <= rr; xx++) if (xx * xx + yy * yy * 1.4 <= rr * rr) { const l = (-yy / rr) * 0.8 + (this.bay(cx + xx, by + yy) - 0.5) * 0.6; R(cx + xx, by + yy, 1, 1, yy < -rr * 0.55 && this.bay(cx + xx, yy) < 0.7 ? '#ffffff' : l > 0.4 ? '#4c7a5c' : l > 0.1 ? '#35604a' : '#244a3a'); } };
+      shrub(M + Math.round(PW * 0.335), gy + q(14), q(11)); shrub(M + Math.round(PW * 0.675), gy + q(14), q(11)); shrub(M + Math.round(PW * 0.045), gy + q(15), q(11));
+      for (let i = 0; i < 16; i++) { const fx = M + Math.round(PW * 0.2) + i * q(6), fy = gy + q(62) + Math.round(Math.sin(i * 0.5) * q(2)) + (i & 1) * 2; R(fx, fy, 2, 1, '#c2b6d2'); R(fx, fy + 1, 1, 1, '#d8cee4'); } }
     this.rock(M + PW * 0.27, gy + q(12), q(18)); this.rock(M + PW * 0.95, gy + q(16), q(15));
   }
   flower(R, x, y, big) { const P = big ? '#d8283e' : '#e8607a'; R(x - 1, y, 3, 1, P); R(x, y - 1, 1, 3, P); if (big) { R(x - 2, y, 1, 1, P); R(x + 2, y, 1, 1, P); R(x, y - 2, 1, 1, P); R(x, y + 2, 1, 1, P); R(x - 1, y - 1, 1, 1, '#9a1830'); R(x + 1, y + 1, 1, 1, '#9a1830'); R(x + 1, y - 1, 1, 1, P); R(x - 1, y + 1, 1, 1, P); } R(x, y, 1, 1, '#f6d060'); }
@@ -191,6 +223,14 @@ export class HongloumengScene {
     for (const [x0, y0, x1, y1, th] of this.segs) this.pl(R, x0, y0, x1, y1, th, '#2a1b1a');
     for (const [x0, y0, x1, y1, th] of this.segs) if (th >= 2) { const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0)); for (let i = 0; i <= n; i++) { const a = i / n; R(x0 + (x1 - x0) * a - (th - 1) / 2, y0 + (y1 - y0) * a - (th - 1) / 2, th, Math.max(1, th >> 1), '#fbf7f6'); } }
     for (const [a, b, big] of this.flw) this.flower(R, a, b, big);
+  }
+  buildGrade() {
+    const { PW, PH, gy, q } = this, mk = () => { const c = document.createElement('canvas'); c.width = PW; c.height = PH; return [c, c.getContext('2d')]; };
+    let [v, x] = mk(); let g = x.createRadialGradient(PW * 0.5, PH * 0.55, PH * 0.35, PW * 0.5, PH * 0.55, Math.hypot(PW, PH) * 0.62); g.addColorStop(0, 'rgba(40,24,64,0)'); g.addColorStop(1, 'rgba(60,36,70,0.3)'); x.fillStyle = g; x.fillRect(0, 0, PW, PH); this.gV = v;
+    [v, x] = mk(); g = x.createLinearGradient(0, this.wallTop - q(6), 0, gy); g.addColorStop(0, 'rgba(236,196,200,0)'); g.addColorStop(1, 'rgba(236,196,204,0.34)'); x.fillStyle = g; x.fillRect(0, this.wallTop - q(6), PW + 40, gy - this.wallTop + q(6)); this.gM = v;
+    [v, x] = mk(); g = x.createLinearGradient(0, gy, 0, PH); g.addColorStop(0, 'rgba(110,84,150,0)'); g.addColorStop(1, 'rgba(110,84,150,0.16)'); x.fillStyle = g; x.fillRect(0, gy, PW + 40, PH - gy); this.gS = v;
+    [v, x] = mk(); { const R2 = this.painter(x), rr = this.rng(77); const st = (bx, h, lean) => { const w = Math.max(3, q(4)); for (let yy = 0; yy < h; yy++) { const xx = Math.round(bx + lean * yy / h * q(14)); R2(xx, PH - yy, w, 1, yy % q(20) < 2 ? '#0e0a18' : '#1e1832'); R2(xx, PH - yy, 1, 1, '#38305a'); } for (let n = 0; n < 7; n++) { const ly = Math.round(h * (0.35 + n * 0.09)), lx = Math.round(bx + lean * ly / h * q(14)), dir = n & 1 ? 1 : -1, ll = q(14 + rr() * 10); for (let i = 0; i < ll; i++) { const yy = PH - ly + Math.round(i * 0.5); R2(lx + dir * i, yy, 1, 2, '#161028'); if (i % 3 === 0) R2(lx + dir * i, yy - 1, 1, 1, '#4a4272'); } } }; } this.gF = v;
+    [v, x] = mk(); g = x.createLinearGradient(0, 0, 0, gy * 0.55); g.addColorStop(0, 'rgba(90,64,130,0.2)'); g.addColorStop(1, 'rgba(70,52,110,0)'); x.fillStyle = g; x.fillRect(0, 0, PW + 40, gy * 0.55); this.gT = v;
   }
   buildFx() {
     const { PW, PH, mob, u } = this, r = this.rng(9), n = Math.round(PW * PH / (mob ? 900 : 520));
@@ -258,8 +298,8 @@ export class HongloumengScene {
       for (let yy = Yu(v1); yy <= Yu(v0); yy++) { const v = (yF - yy) / k - bu, hw = hwF(v); if (hw <= 0) continue;
         const cx = cxAt(v) + (flare && v < 16 ? s * 1.2 * k * (1 - v / 16) : 0), a = Math.round(cx - hw * k), b = Math.round(cx + hw * k);
         for (let xx = a; xx <= b; xx++) { const fr = (xx - a) / Math.max(1, b - a); let col = pal[0];
-          if (v < trimTo) col = trim; else if (xx === a) col = pal[1]; else if (xx === b || (fr > 0.64 && this.bay(xx, yy) < (fr - 0.64) * 2.8)) col = pal[2];
-          R(xx, yy, 1, 1, col); } } };
+          if (v < trimTo) col = trim; else if (xx === a) col = pal[1]; else if (xx === b) col = this.mixc(pal[2], '#241420', 0.5); else if (fr > 0.82) col = pal[2]; else if (fr > 0.56 + (this.vn(xx * 0.45 + 3, yy * 0.3) - 0.5) * 0.16) col = this.mixc(pal[0], pal[2], 0.5); else if (fr < 0.22) col = this.mixc(pal[0], pal[1], 0.5);
+          R(xx, yy, 1, 1, col); if (col === pal[0] && v < 21 && v > 3 && ((xx - a) * 2 + Math.floor(v * 0.45)) % 9 === 0 && fr > 0.18) R(xx, yy, 1, 1, 'rgba(50,20,40,0.2)'); else if (col === pal[0] && v < 3.2 && v > 1.4) R(xx, yy, 1, 1, 'rgba(50,20,40,0.22)'); } } };
     const arm = (front, h) => { const sx = Math.round(cxAt(23.5) + (front ? f : -f) * 2.6 * k), sy = Yu(23.5), th = Math.max(2, Q(1.6)); this.pl(R, sx, sy, h[0], h[1], th, sl); R(h[0] - (th >> 1), h[1] - (th >> 1), th, th, skin); };
     let fh = null, bh = null;
     if (pr === 'plum') fh = Hd(3.2 + (paused ? Math.sin(t * 6) * 0.9 : 0), paused ? 28 : 17 + s);
@@ -281,9 +321,9 @@ export class HongloumengScene {
     const hx = Math.round(cxAt(30) + f * 0.3 * k), hr = 3.5, hy = 30.6;
     R(hx - Q(0.9), Yu(27.6), Math.max(2, Q(1.8)), Q(1) + 1, skinD);
     for (let yy = Yu(hy + hr); yy <= Yu(hy - hr); yy++) { const dv = (yF - yy) / k - bu - hy, hw = Math.sqrt(Math.max(0, hr * hr - dv * dv)); if (hw < 0.5) continue; const a = Math.round(hx - hw * k), b = Math.round(hx + hw * k);
-      for (let xx = a; xx <= b; xx++) { const back = f > 0 ? xx - a : b - xx; let col = back === 0 ? skinD : skin; if (dv > 0.7 || (dv > -1.8 && back < Math.max(1, 1.2 * k))) col = hair; R(xx, yy, 1, 1, col); } }
+      for (let xx = a; xx <= b; xx++) { const back = f > 0 ? xx - a : b - xx; let col = back === 0 ? skinD : skin; if (dv > 0.7 || (dv > -1.8 && back < Math.max(1, 1.2 * k))) col = hair; else if (dv < -2.1 && dv > -3.3) col = skinD; R(xx, yy, 1, 1, col); } }
     const ex = hx + f * Math.max(1, Q(0.9)), ey = Yu(30.1), gap = Math.max(1, Q(1.3)), blink = (t * 0.6 + ph) % 3.7 < 0.12;
-    if (!blink) { R(ex - gap, ey, 1, 1, '#2a1a1a'); R(ex + gap, ey, 1, 1, '#2a1a1a'); }
+    if (!blink) { const eh = k > 1.1 ? 2 : 1; R(ex - gap, ey - eh + 1, 1, eh, '#2a1a1a'); R(ex + gap, ey - eh + 1, 1, eh, '#2a1a1a'); if (k > 1.1) { R(ex - gap, ey - 2, 1, 1, p.kind === 'elder' ? '#b8b4c0' : '#3a2428'); R(ex + gap, ey - 2, 1, 1, p.kind === 'elder' ? '#b8b4c0' : '#3a2428'); } } else { R(ex - gap, ey, 1, 1, '#4a2a2a'); R(ex + gap, ey, 1, 1, '#4a2a2a'); }
     R(ex - gap - 1, Yu(29.2), 1, 1, '#f2a8a0'); R(ex + gap + 1, Yu(29.2), 1, 1, '#f2a8a0'); R(ex, Yu(28.4), 1, 1, '#c8584a');
     const blob = (cx, cy, rr, col) => { rr = Math.max(1, rr); for (let yy = -rr; yy <= rr; yy++) for (let xx = -rr; xx <= rr; xx++) if (xx * xx + yy * yy <= rr * rr + rr * 0.8) R(cx + xx, cy + yy, 1, 1, col); };
     if (p.kind === 'bao') { blob(hx, Yu(35.2), Q(1.2), hair); R(hx - Q(1.6), Yu(36.4), Q(3.2) + 1, Math.max(2, Q(1.5)), '#e6b840'); R(hx - Q(1.6), Yu(36.4), 1, 1, '#fff0a8'); R(hx, Yu(37.2), 1, 1, '#d8283a'); R(hx - Q(3.4), Yu(32.4), Q(6.8) + 1, Math.max(1, Q(0.8)), '#c8283a'); R(hx + f * Q(0.4), Yu(32.4), 1, 1, '#f0d060'); }
@@ -307,7 +347,7 @@ export class HongloumengScene {
     else if (pr === 'cane') { const tap = Math.sin(t * 1.3 + ph) > 0.7 ? 1 : 0; this.pl(R, fh[0], fh[1] - Q(1), fh[0] + f * Q(0.8), yF - tap, Math.max(1, Q(0.9)), '#5a3a1a'); R(fh[0] - Q(0.8), fh[1] - Q(2.4), Math.max(2, Q(1.8)), Math.max(2, Q(1.6)), '#e2b84a'); R(fh[0] - Q(0.8), fh[1] - Q(2.4), 1, 1, '#fff0a8'); }
     else if (pr === 'umb') { const ux = x0 + Math.round(p.umb * 0.55 * this.U()) + Math.round(Math.sin(t * 0.8 + ph) * 0.6 * k), ut = Yu(45), n = Math.max(4, Q(5.5)), RW = Q(15), rib = Math.max(3, Q(3));
       this.pl(R, fh[0], fh[1], ux, ut + 1, 1, '#5a3a1a');
-      for (let i = 0; i <= n; i++) { const hw = Math.round(RW * Math.sqrt(1 - Math.pow((n - i) / n, 2))), yy = ut + i; for (let xx = -hw; xx <= hw; xx++) { const fr = (xx + hw) / Math.max(1, 2 * hw); let col = Math.abs(xx) % rib === 0 ? '#e8805a' : '#d24a30'; if (fr > 0.68 && this.bay(xx + 50, yy) < (fr - 0.68) * 3) col = '#a8321e'; if (i === n) col = (xx & 1) ? '#8a2418' : '#d24a30'; if (i < Math.max(1, n * 0.35) || (i < n * 0.5 && this.bay(xx + 50, yy) < 0.5)) col = '#fbf7f6'; R(ux + xx, yy, 1, 1, col); } }
+      for (let i = 0; i <= n; i++) { const hw = Math.round(RW * Math.sqrt(1 - Math.pow((n - i) / n, 2))), yy = ut + i; for (let xx = -hw; xx <= hw; xx++) { const fr = (xx + hw) / Math.max(1, 2 * hw); let col = Math.abs(xx) % rib === 0 ? '#e8805a' : '#d24a30'; if (fr > 0.7 + (this.vn(xx * 0.4, yy * 0.5) - 0.5) * 0.14) col = '#a8321e'; if (i === n) col = (xx & 1) ? '#8a2418' : '#d24a30'; if (i < Math.max(1, n * 0.35) || (i < n * 0.5 && this.vn(xx * 0.3 + 50, yy * 0.6) < 0.5)) col = '#fbf7f6'; R(ux + xx, yy, 1, 1, col); } }
       R(ux, ut - 1, 1, 2, '#5a3a1a'); }
   }
 
@@ -330,19 +370,59 @@ export class HongloumengScene {
     for (const p of this.petals) { p.y += p.v * step; p.x += (Math.sin(this.t * 1.1 + p.ph) * 5 - 4) * u * step; if (p.y > PH + 3 || p.x < -4) Object.assign(p, this.newPetal(false)); }
     this.stepCrowd(step); this.draw();
   }
+  bloom(a) {
+    const { ctx: c, PW, PH } = this, w = Math.max(8, PW >> 2), h = Math.max(8, PH >> 2);
+    if (!this.bc) { this.bc = document.createElement('canvas'); this.bc.width = w; this.bc.height = h; this.bx = this.bc.getContext('2d'); }
+    const b = this.bx; b.globalCompositeOperation = 'copy'; b.filter = 'brightness(0.55) contrast(3) saturate(1.3) blur(1px)'; b.imageSmoothingEnabled = true; b.drawImage(c.canvas, 0, 0, w, h); b.filter = 'none';
+    c.save(); c.imageSmoothingEnabled = true; c.globalCompositeOperation = 'lighter'; c.globalAlpha = a; c.drawImage(this.bc, 0, 0, PW, PH); c.restore(); c.imageSmoothingEnabled = false;
+  }
+  sparkle(ox) {
+    const { R, gy, PW, PH, t } = this; for (let i = 0; i < 70; i++) { const h1 = Math.abs(Math.sin(i * 91.7) * 4375.5) % 1, h2 = Math.abs(Math.sin(i * 37.3 + 5) * 9183.1) % 1, x = Math.round(ox + h1 * PW), y = Math.round(gy + 4 + h2 * (PH - gy - 6)), s = Math.sin(t * 2.2 + i * 3.7); if (s > 0.9) { R(x, y, 1, 1, '#ffffff'); if (s > 0.97) { R(x - 1, y, 3, 1, '#fff6ff'); R(x, y - 1, 1, 3, '#fff6ff'); } } }
+    const f = [[0.12, 0.74], [0.16, 0.77], [0.2, 0.795], [0.25, 0.8], [0.3, 0.83], [0.36, 0.84], [0.41, 0.86], [0.47, 0.87]]; f.forEach(([a, b], i) => { const x = Math.round(ox + PW * a), y = Math.round(gy + (PH - gy) * (b - 0.62) / 0.38 * 0.9 + 6), d = i & 1 ? 2 : -2; R(x + d, y, 3, 1, '#b8aad0'); R(x + d, y + 1, 3, 1, '#d8ccea'); R(x + d + 1, y - 1, 1, 1, '#f4eef8'); });
+  }
+  fore(ox) {
+    const { ctx: c, R, q, gy, PW, t } = this, disc = (cx, cy, r, f) => { for (let yy = -r; yy <= r; yy++) for (let xx = -r; xx <= r; xx++) if (xx * xx + yy * yy <= r * r + r * 0.6) R(cx + xx, cy + yy, 1, 1, f(xx / r, yy / r, xx, yy)); };
+    const sw = (a, b) => (a * 0.7 - b * 0.8 + (this.vn(a * 3 + 9, b * 3 + 9) - 0.5) * 0.35);
+    { const sx = Math.round(ox + PW * 0.07), sb = gy + q(92), r1 = q(11), r2 = q(8), r3 = q(6);
+      for (let i = 0; i < r1 * 2; i++) { R(sx - r1 + i, sb, 1, 1, '#b8a8c8'); } 
+      disc(sx, sb - r1, r1, (a, b) => { const l = sw(a, b); return l > 0.55 ? '#ffffff' : l > 0.1 ? '#f2ecf8' : l > -0.4 ? '#d8cce6' : '#b4a6cc'; });
+      disc(sx, sb - r1 * 2 - r2 + 3, r2, (a, b) => { const l = sw(a, b); return l > 0.55 ? '#ffffff' : l > 0.1 ? '#f2ecf8' : l > -0.4 ? '#d8cce6' : '#b4a6cc'; });
+      const hy = sb - r1 * 2 - r2 * 2 - r3 + 6; disc(sx, hy, r3, (a, b) => { const l = sw(a, b); return l > 0.55 ? '#ffffff' : l > 0.1 ? '#f2ecf8' : l > -0.4 ? '#d8cce6' : '#b4a6cc'; });
+      R(sx - 3, hy - 2, 2, 2, '#1a1216'); R(sx + 2, hy - 2, 2, 2, '#1a1216'); R(sx, hy, 6, 2, '#ee7a2c'); R(sx, hy, 6, 1, '#ffb060'); for (let i = -2; i <= 2; i++) R(sx + i * 2, hy + 3 + Math.abs(i) % 2, 1, 1, '#1a1216');
+      R(sx - r3, hy + r3 - 2, r3 * 2, 3, '#c8283a'); R(sx - r3, hy + r3 - 2, r3 * 2, 1, '#e86a7a'); R(sx + r3 - 3, hy + r3, 3, 5, '#a81c2c');
+      R(sx - r3 - 1, hy - r3 - 1, r3 * 2 + 2, 2, '#1a1216'); R(sx - r3 + 2, hy - r3 - 7, r3 * 2 - 4, 7, '#1a1216'); R(sx - r3 + 2, hy - r3 - 3, r3 * 2 - 4, 2, '#c8283a');
+      this.pl(R, sx - r2 + 1, sb - r1 * 2 - 1, sx - r1 - q(8), sb - r1 * 2 - q(9), 1, '#5a3a22'); this.pl(R, sx + r2 - 1, sb - r1 * 2 - 1, sx + r1 + q(8), sb - r1 * 2 - q(6), 1, '#5a3a22');
+      for (let i = 0; i < 3; i++) R(sx - 1, sb - r1 * 2 - r2 + 6 + i * 4, 2, 2, '#1a1216'); }
+    { const bx = Math.round(ox + PW * 0.9), bb = gy + q(84), bw = q(13), fl = Math.sin(t * 9) * 0.5 + Math.sin(t * 15.7) * 0.5;
+      this.blit(c, this.glow(q(70), '#ff8a3c'), bx, bb - q(14), 0.5 + 0.1 * fl);
+      for (const sd of [-1, 1, 0]) this.pl(R, bx + sd * bw * 0.55, bb - q(8), bx + sd * bw * 0.8, bb, 2, '#2a1c14');
+      for (let yy = 0; yy < q(9); yy++) { const hw = Math.round(bw * (0.62 + 0.38 * Math.sin((yy / q(9)) * 1.5 + 0.2))); for (let xx = -hw; xx <= hw; xx++) R(bx + xx, bb - q(17) + yy, 1, 1, yy < 2 ? '#e8c06a' : xx < -hw * 0.4 ? '#a8742c' : xx > hw * 0.5 ? '#4a2c14' : '#7a4c1e'); }
+      for (let xx = -bw; xx <= bw; xx++) R(bx + xx, bb - q(18), 1, 2, this.bay(xx + 7, 3) < 0.4 ? '#ff6a2c' : '#ffb040');
+      for (let i = -3; i <= 3; i++) { const fh = Math.round(q(9) + q(7) * Math.abs(Math.sin(t * 8 + i * 1.7)) + (3 - Math.abs(i)) * 2); for (let k = 0; k < fh; k++) { const w2 = Math.max(0, Math.round((2 - k / fh * 2)) ); const fx = bx + i * 3 + Math.round(Math.sin(t * 6 + i + k * 0.2) * k * 0.08); R(fx - w2, bb - q(18) - k, w2 * 2 + 1, 1, k < fh * 0.35 ? '#ffe9a0' : k < fh * 0.7 ? '#ffa23c' : '#e8481c'); } }
+      for (let i = 0; i < 6; i++) { const ph = (t * 0.7 + i / 6) % 1; R(bx + Math.round(Math.sin(i * 3.1 + t) * q(8)), bb - q(18) - Math.round(ph * q(40)), 1, 1, ph < 0.6 ? '#ffd070' : '#c88a50'); } }
+  }
   draw() {
     const { ctx: c, M, t, mx, R } = this, o = k => Math.round(mx * k) - M;
     c.globalAlpha = 1; c.drawImage(this.L0, o(2), 0);
     const o1 = o(4); c.drawImage(this.L1, o1, 0);
-    for (const w of this.wins) this.blit(c, this.glow(Math.round(w.r), '#ffb468'), w.x + o1, w.y, (w.I || 0.28) * (0.85 + 0.15 * Math.sin(t * 2 + w.ph)));
+    for (const d of this.doors || []) { const ph = d.ph, mv = Math.sin(t * 0.5 + ph), sx = Math.round(d.x + d.w * (0.5 + 0.22 * mv)), by = d.y + d.h - 1, fh = Math.round(d.h * 0.72); c.globalAlpha = 0.78; R(sx - 1, by - fh, 3, 3, '#4a2418'); R(sx - 2, by - fh + 3, 5, fh - 5, '#4a2418'); R(sx - 2, by - 2, 2, 2, '#3a1c12'); R(sx + 1, by - 2, 2, 2, '#3a1c12'); R(sx - 1 + (mv > 0 ? 2 : -3), by - fh + 5, 1, Math.round(fh * 0.4), '#4a2418'); c.globalAlpha = 1; }
+    c.drawImage(this.gM, 0, 0);
+    for (const w of this.wins) this.blit(c, this.glow(Math.round(w.r * 1.6), '#ffb468'), w.x + o1, w.y, (w.I || 0.28) * 1.5 * (0.85 + 0.15 * Math.sin(t * 2 + w.ph)) + 0 * (w.I || 0.28) * (0.85 + 0.15 * Math.sin(t * 2 + w.ph)));
     for (const l of this.lants) this.lantern(l.x + o1, l.y, l.s, l.ph);
+    { const q = this.q; c.globalCompositeOperation = 'lighter'; for (const l of this.lants) this.blit(c, this.glow(Math.round(q(20) * l.s), '#ff8a44'), l.x + o1, l.y + q(8) * l.s, 0.3 * (0.88 + 0.12 * Math.sin(t * 7 + l.ph * 3))); c.globalCompositeOperation = 'source-over'; }
     const o2 = o(7); c.drawImage(this.L2, o2, 0);
+    c.drawImage(this.gS, 0, 0);
+    { const q = this.q, gy = this.gy; c.globalCompositeOperation = 'lighter'; for (const l of this.lants) { const gx = l.x + o1, w = Math.round(q(46) * l.s), h = Math.round(q(11) * l.s), a = 0.55 * (0.88 + 0.12 * Math.sin(t * 7 + l.ph * 3)); c.globalAlpha = a; c.drawImage(this.glow(30, '#ff9048'), gx - w, gy + q(5) - h * 0.5, w * 2, h); }
+      for (const w of this.wins) if ((w.I || 0.28) > 0.25) { c.globalAlpha = 0.16; c.drawImage(this.glow(30, '#ffb060'), w.x + o1 - q(14), gy - q(1), q(28), q(10)); }
+      c.globalAlpha = 1; c.globalCompositeOperation = 'source-over'; }
     for (const f of this.flakes) if (!f.l) R(f.x, f.y, 1, 1, '#fbf8ff');
     const ox = o2 + M, list = this.crowd.map(p => { const [x, y, k] = this.pos(p); return { p, x: x + ox, y, k }; }).sort((a, b) => a.y - b.y || a.x - b.x);
     for (const e of list) this.fig(e.p, e.x, e.y, e.k);
+    this.sparkle(o2 + M); this.fore(o2 + M);
     c.drawImage(this.L3, o(14), 0);
     for (const p of this.petals) R(p.x, p.y, Math.sin(t * 3 + p.ph) > 0 ? 2 : 1, 1, p.c);
     for (const f of this.flakes) if (f.l) R(f.x, f.y, 2, 2, '#ffffff');
+    c.drawImage(this.gF, 0, 0); c.drawImage(this.gT, 0, 0); c.drawImage(this.gV, 0, 0); this.bloom(0.22);
     this.drawText(o1);
   }
   drawText(o1) {

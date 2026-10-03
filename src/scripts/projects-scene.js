@@ -47,17 +47,20 @@ export class ProjectsScene {
   hx(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
   rng(seed) { let s = seed; return () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   painter(x) { return (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), Math.max(1, Math.round(w)), Math.max(1, Math.round(h))); }; }
+  vn(x, y) { const h = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); }, ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy, u = fx * fx * (3 - 2 * fx), w = fy * fy * (3 - 2 * fy); return (h(ix, iy) * (1 - u) + h(ix + 1, iy) * u) * (1 - w) + (h(ix, iy + 1) * (1 - u) + h(ix + 1, iy + 1) * u) * w; }
+  mixc(h1, h2, t) { const a = this.hx(h1), b = this.hx(h2); return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
+  sn(x, y) { return this.vn(x * 0.28 + 11, y * 0.3 + 7); }
   bay(x, y) { return (this.BAY[(y & 3) * 4 + (x & 3)] + 0.5) / 16; }
   gradImg(x, W, H, ramp, curve) {
     const img = x.createImageData(W, H), d = img.data, C = ramp.map(h => this.hx(h)), n = C.length - 1;
     for (let y = 0; y < H; y++) { const f = Math.pow(y / Math.max(1, H - 1), curve) * n, b = Math.floor(f), fr = f - b;
-      for (let xx = 0; xx < W; xx++) { const c = C[Math.min(n, fr > this.bay(xx, y) ? b + 1 : b)], i = (y * W + xx) * 4; d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255; } }
+      for (let xx = 0; xx < W; xx++) { const c0 = C[Math.min(n, b)], c1 = C[Math.min(n, b + 1)], i = (y * W + xx) * 4, nz = (((xx * 73856093) ^ (y * 19349663)) & 255) / 255 - 0.5; for (let k = 0; k < 3; k++) d[i + k] = Math.max(0, Math.min(255, Math.round(c0[k] + (c1[k] - c0[k]) * fr + nz * 2.4))); d[i + 3] = 255; } }
     x.putImageData(img, 0, 0);
   }
   glow(r, hex) {
     r = Math.max(2, Math.round(r)); const key = r + hex; if (this.glowC[key]) return this.glowC[key];
     const s = 2 * r + 1, [c, x] = this.mk(s, s), img = x.createImageData(s, s), d = img.data, col = this.hx(hex);
-    for (let yy = 0; yy < s; yy++) for (let xx = 0; xx < s; xx++) { const dd = Math.hypot(xx - r, yy - r) / r; if (dd >= 1) continue; const a = Math.pow(1 - dd, 1.7), lv = Math.floor(a * 6 + this.bay(xx, yy)) / 6, i = (yy * s + xx) * 4; d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = Math.min(255, lv * 255); }
+    for (let yy = 0; yy < s; yy++) for (let xx = 0; xx < s; xx++) { const dd = Math.hypot(xx - r, yy - r) / r; if (dd >= 1) continue; const a = Math.pow(1 - dd, 1.7), lv = Math.max(0, a + ((((xx * 73856093) ^ (yy * 19349663)) & 255) / 255 - 0.5) * 0.025), i = (yy * s + xx) * 4; d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = Math.min(255, lv * 255); }
     x.putImageData(img, 0, 0); return this.glowC[key] = c;
   }
   blit(x, c, cx, cy, a) { const rr = (c.width - 1) / 2; x.globalAlpha = Math.max(0, Math.min(1, a)); x.drawImage(c, Math.round(cx - rr), Math.round(cy - rr)); x.globalAlpha = 1; }
@@ -80,7 +83,7 @@ export class ProjectsScene {
     const { FW, PH, gy, q, sunX } = this, [c, x] = this.mk(FW, PH), R = this.painter(x); this.L0 = c;
     const [gc, gx] = this.mk(FW, gy + 2); this.gradImg(gx, FW, gy + 2, ['#2c3878', '#4e4a94', '#8a64a0', '#cc7c92', '#f09a78', '#ffc084', '#ffe4ae'], 1.2); x.drawImage(gc, 0, 0);
     const sy = gy - q(26), sr = Math.max(5, q(19));
-    for (let yy = 0; yy < sy; yy++) for (let xx = 0; xx < FW; xx++) { const dx = xx - sunX, dy = yy - sy, d = Math.hypot(dx, dy), an = Math.atan2(dy, dx), ray = Math.sin(an * 11 + 1.3) * 0.5 + 0.5, fall = Math.max(0, 1 - d / (q(260))); if (ray > 0.62 && this.bay(xx, yy) < (ray - 0.62) * 1.3 * fall * 0.32) R(xx, yy, 1, 1, '#ffe4b0'); }
+    for (let yy = 0; yy < sy; yy++) for (let xx = 0; xx < FW; xx++) { const dx = xx - sunX, dy = yy - sy, d = Math.hypot(dx, dy), an = Math.atan2(dy, dx), ray = Math.sin(an * 11 + 1.3) * 0.5 + 0.5, fall = Math.max(0, 1 - d / (q(260))); if (ray > 0.55 && fall > 0) R(xx, yy, 1, 1, 'rgba(255,228,176,' + Math.min(0.3, (ray - 0.55) * fall * 0.5) + ')'); }
     this.blit(x, this.glow(q(190), '#ff9a5a'), sunX, sy, 0.5); this.blit(x, this.glow(q(80), '#ffd090'), sunX, sy, 0.65);
     for (let yy = -sr; yy <= sr; yy++) for (let xx = -sr; xx <= sr; xx++) { const d = Math.hypot(xx, yy) / sr; if (d > 1) continue; R(sunX + xx, sy + yy, 1, 1, d > 0.82 + (this.bay(xx + 40, yy + 40) - 0.5) * 0.1 ? '#ffd890' : '#fff2cc'); }
   }
@@ -89,7 +92,7 @@ export class ProjectsScene {
     const dir = this.sunX > x ? 1 : -1, tw = Math.max(2, Math.round(3 * sc)), th = Math.round(34 * sc);
     for (let yy = 0; yy < th; yy++) R(x - (tw >> 1), base - yy, tw, 1, yy % 5 === 0 ? '#2a1e28' : '#4a3236'); R(x - (tw >> 1) + (dir > 0 ? tw - 1 : 0), base - th, 1, th, '#a8705a');
     [[0, 36, 15], [-12, 28, 11], [12, 29, 12], [-3, 47, 10], [8, 42, 9], [-15, 40, 8]].forEach(([bx, by, br]) => { const cx = Math.round(x + bx * sc), cy = Math.round(base - by * sc), r = Math.round(br * sc);
-      for (let yy = -r; yy <= r; yy++) for (let xx = -r; xx <= r; xx++) { if (xx * xx + yy * yy > r * r + r * 0.6) continue; const l = (xx / r) * dir * 0.8 - (yy / r) * 0.7 + (this.bay(cx + xx, cy + yy) - 0.5) * 0.4; R(cx + xx, cy + yy, 1, 1, l > 0.8 ? '#e4b860' : l > 0.38 ? '#86ac58' : l > -0.2 ? '#4f8450' : '#33594a'); } });
+      for (let yy = -r; yy <= r; yy++) for (let xx = -r; xx <= r; xx++) { if (xx * xx + yy * yy > r * r + r * 0.6) continue; const l = (xx / r) * dir * 0.8 - (yy / r) * 0.7 + (this.sn(cx + xx, cy + yy) - 0.5) * 0.4; R(cx + xx, cy + yy, 1, 1, l > 0.8 ? '#e4b860' : l > 0.38 ? '#86ac58' : l > -0.2 ? '#4f8450' : '#33594a'); } });
   }
   arch(R, cx, yb, d) {
     const { wb, ws, wt, h, hs, th } = d, P = [[cx - wb, yb], [cx - ws, yb - hs], [cx - wt, yb - h], [cx + wt, yb - h], [cx + ws, yb - hs], [cx + wb, yb]], ht = th / 2;
@@ -98,18 +101,18 @@ export class ProjectsScene {
       let best = 1e9, sg = 0, si = 0;
       for (let i = 0; i < 5; i++) { const [ax, ay] = P[i], [bx, by] = P[i + 1], dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy, tt = Math.max(0, Math.min(1, ((x + 0.5 - ax) * dx + (y + 0.5 - ay) * dy) / L2)), dd = Math.hypot(ax + dx * tt - x - 0.5, ay + dy * tt - y - 0.5); if (dd < best) { best = dd; sg = (dx * (y + 0.5 - ay) - dy * (x + 0.5 - ax)) / Math.sqrt(L2); si = i; } }
       if (best > ht) continue;
-      const v = sg / ht + (this.bay(x, y) - 0.5) * 0.18;
+      const v = sg / ht + (this.sn(x, y) - 0.5) * 0.18;
       let col = v < -0.6 ? '#fff0c8' : v < 0.3 ? '#e8d6aa' : v < 0.72 ? '#c8b08a' : '#a48c6e';
       if (si === 2 && v < 0.2) col = v < -0.4 ? '#fff6d8' : '#f2e2b8';
       R(x, y, 1, 1, col);
     }
   }
-  plinth(R, x0, x1, yt, yb) { x0 = Math.round(x0); x1 = Math.round(x1); for (let y = yt; y < yb; y++) for (let x = x0; x < x1; x++) { const rel = y - yt, row = Math.floor(rel / 4); const col = rel < 2 ? '#aaa6b6' : (rel % 4 === 0 || (x - x0 + (row & 1) * 5) % 10 === 0) ? '#5e5c6c' : x > x1 - 3 ? '#62606e' : x < x0 + 2 ? '#a09cac' : this.bay(x, y) < 0.25 ? '#76748a' : '#84829a'; R(x, y, 1, 1, col); } }
+  plinth(R, x0, x1, yt, yb) { x0 = Math.round(x0); x1 = Math.round(x1); for (let y = yt; y < yb; y++) for (let x = x0; x < x1; x++) { const rel = y - yt, row = Math.floor(rel / 4); const col = rel < 2 ? '#aaa6b6' : (rel % 4 === 0 || (x - x0 + (row & 1) * 5) % 10 === 0) ? '#5e5c6c' : x > x1 - 3 ? '#62606e' : x < x0 + 2 ? '#a09cac' : this.sn(x, y) < 0.25 ? '#76748a' : '#84829a'; R(x, y, 1, 1, col); } }
   ctree(R, x, base, sc) {
     const dir = this.sunX > x ? 1 : -1, rx = Math.max(2, 6.5 * sc), ry = Math.max(4, 21 * sc), cy = base - 6 * sc - ry; x = Math.round(x);
     R(x - Math.max(1, Math.round(sc)), base - 7 * sc, Math.max(2, Math.round(2 * sc)), 7 * sc + 1, '#3a2a2e');
     for (let yy = -Math.ceil(ry); yy <= Math.ceil(ry); yy++) { const fy = yy / ry, w = rx * Math.sqrt(Math.max(0, 1 - fy * fy)) * (0.8 + 0.2 * Math.sin(yy * 0.9 + x)) * (fy < 0 ? 1 - 0.35 * -fy : 1);
-      for (let xx = -Math.ceil(w); xx <= Math.ceil(w); xx++) { const l = (xx / rx) * dir * 0.55 - fy * 0.75 + (this.bay(x + xx, Math.round(cy + yy)) - 0.5) * 0.5 + Math.sin((x + xx) * 1.7 + yy * 2.3) * 0.15; R(x + xx, cy + yy, 1, 1, l > 0.85 ? '#e0b864' : l > 0.4 ? '#6e9c58' : l > -0.15 ? '#4a7c4a' : '#2e5440'); } }
+      for (let xx = -Math.ceil(w); xx <= Math.ceil(w); xx++) { const l = (xx / rx) * dir * 0.55 - fy * 0.75 + (this.sn(x + xx, Math.round(cy + yy)) - 0.5) * 0.5 + Math.sin((x + xx) * 1.7 + yy * 2.3) * 0.15; R(x + xx, cy + yy, 1, 1, l > 0.85 ? '#e0b864' : l > 0.4 ? '#6e9c58' : l > -0.15 ? '#4a7c4a' : '#2e5440'); } }
   }
   lampPost(R, x, base, hgt, side) { x = Math.round(x); const w = hgt > 30 ? 2 : 1; for (let yy = 0; yy < hgt; yy++) R(x, base - yy, w, 1, '#3a2c48'); const al = Math.max(2, Math.round(hgt * 0.16)); R(Math.min(x, x + side * al), base - hgt, al + 1, 1, '#3a2c48'); const hx = x + side * al; R(hx - 1, base - hgt + 1, 3, Math.max(1, Math.round(hgt / 30)), '#ffe4a0'); this.lamps.push({ x: hx, y: base - hgt + 2, r: Math.max(4, Math.round(hgt * 0.3)) }); }
   bench(R, x, seatY, w) {
@@ -120,8 +123,10 @@ export class ProjectsScene {
   buildScene() {
     const { FW, PW, PH, gy, yB, q, qa, cx0, mob } = this, [c, x] = this.mk(FW, PH), R = this.B = this.painter(x), r = this.rng(12); this.L1 = c;
     const lerp = (a, b, f) => a + (b - a) * f;
-    for (let xx = 0; xx < FW; xx++) { const X = xx / this.u, top = Math.round(gy - q(6) - q(22) * (0.5 + 0.3 * Math.sin(X * 0.012 + 1.1) + 0.15 * Math.sin(X * 0.033 + 2.2))); R(xx, top, 1, gy - top + 2, '#7a6896'); if (this.bay(xx, top) < 0.7) R(xx, top, 1, 1, '#d8928c'); }
-    for (let i = 0; i < FW / q(5); i++) { const bx = Math.round(i * q(5) + r() * q(3)), rr = Math.round(q(3 + r() * 4)); for (let yy = -rr; yy <= rr; yy++) for (let xx = -rr; xx <= rr; xx++) if (xx * xx + yy * yy <= rr * rr) { const l = (xx / rr) * (this.sunX > bx ? 1 : -1) * 0.7 - (yy / rr) * 0.6 + (this.bay(bx + xx, yy) - 0.5) * 0.3; R(bx + xx, gy - rr + yy + 2, 1, 1, l > 0.5 ? '#a6706e' : '#2f2c58'); } }
+    const prof = (xx, base, amp, sd) => { const X = xx / this.u; return base - amp * (0.5 + 0.3 * Math.sin(X * 0.012 + sd) + 0.15 * Math.sin(X * 0.033 + sd * 2) + 0.05 * Math.sin(X * 0.09 + sd)); };
+    for (let xx = 0; xx < FW; xx++) { const tf = prof(xx, gy - q(12), q(26), 0.4), top = Math.floor(tf), RL = q(6); R(xx, top, 1, gy - top + 2, '#8a78a6'); for (let yy = top; yy < top + RL + 1; yy++) { const d = yy + 1 - tf; if (d <= 0) continue; const a = Math.min(1, d) * 0.9 * Math.max(0, 1 - d / RL); R(xx, yy, 1, 1, 'rgba(250,184,160,' + a + ')'); } R(xx, top, 1, 1, 'rgba(255,214,190,' + (1 - (tf - top)) * 0.7 + ')'); }
+    for (let xx = 0; xx < FW; xx++) { const tf = prof(xx, gy - q(6), q(22), 1.1), top = Math.floor(tf), RL = q(5); R(xx, top, 1, gy - top + 2, '#7a6896'); for (let yy = top; yy < top + RL + 1; yy++) { const d = yy + 1 - tf; if (d <= 0) continue; R(xx, yy, 1, 1, 'rgba(226,148,142,' + Math.min(1, d) * 0.75 * Math.max(0, 1 - d / RL) + ')'); } }
+    for (let xx = 0; xx < FW; xx++) { const X = xx / this.u, tf = gy - q(4) - q(6) * (0.5 + 0.5 * this.vn(X * 0.05, 3)) - q(1.6) * this.vn(X * 0.14, 9) - q(5) * (0.5 + 0.4 * Math.sin(X * 0.02 + 2)), top = Math.floor(tf); R(xx, top, 1, gy - top + 2, '#2f2c58'); for (let yy = top; yy < top + q(3); yy++) { const d = yy + 1 - tf; if (d > 0) R(xx, yy, 1, 1, 'rgba(160,110,112,' + Math.min(1, d) * 0.7 * Math.max(0, 1 - d / q(3)) + ')'); } }
     const bw = Math.round(Math.min(PW * 0.3, qa(200))), bh = q(17), bx = cx0 - (bw >> 1), bt = gy - bh;
     const blk = (x0, w, top, h) => { for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) { let col = yy === 0 ? '#fff0e8' : xx === w - 1 ? '#b8a8b8' : '#e2d2d4'; if (yy > 1 && yy % 4 === 2 && xx % 5 >= 2 && xx % 5 <= 3 && xx > 1 && xx < w - 2) col = r() < 0.1 ? '#ffd890' : '#9a96b0'; R(x0 + xx, top + yy, 1, 1, col); } };
     blk(bx, bw, bt + q(4), bh - q(4) + 2); blk(cx0 - Math.round(bw * 0.22), Math.round(bw * 0.44), bt, bh + 2); blk(cx0 - Math.round(bw * 0.07), Math.round(bw * 0.14), bt - q(7), q(7) + 1);
@@ -131,14 +136,14 @@ export class ProjectsScene {
     const apTop = pyB - q(23), hw0 = qa(31) + q(14), hw1 = qa(146), ss = v => v * v * (3 - 2 * v), hwP = y => y < apTop ? -1 : y < yB ? hw0 + (hw1 - hw0) * ss((y - apTop) / (yB - apTop)) : hw1 + (PW - hw1) * Math.pow((y - yB) / (PH - yB), 0.7), eLf = y => cx0 - hwP(y), eRf = y => cx0 + hwP(y);
     const isPlaza = (xx, yy) => yy >= apTop && Math.abs(xx - cx0) <= hwP(yy), isPath = (xx, yy) => yy < pyB && Math.abs(xx - cx0) >= halfMed(yy) && Math.abs(xx - cx0) < halfWalk(yy);
     for (let yy = gy + 2; yy < PH; yy++) { const f = (yy - gy) / (PH - gy);
-      for (let xx = 0; xx < FW; xx++) { const b = this.bay(xx, yy), ax = Math.abs(xx - cx0); let col; const gv = f * 1.3 + (b - 0.5) * 0.5, grass = gv < 0.25 ? '#94a454' : gv < 0.5 ? '#6f9050' : gv < 0.8 ? '#587a43' : '#466a3c';
+      for (let xx = 0; xx < FW; xx++) { const b = this.bay(xx, yy), ax = Math.abs(xx - cx0); let col; const gv = f * 1.3 + (this.vn(xx * 0.035, yy * 0.12) - 0.5) * 0.6 + (b - 0.5) * 0.04, grass = gv < 0.25 ? '#94a454' : gv < 0.5 ? '#6f9050' : gv < 0.8 ? '#587a43' : '#466a3c';
         if (yy < pyB && !isPlaza(xx, yy)) col = ax < halfMed(yy) ? grass : ax < halfRoad(yy) ? (b < 0.2 ? '#8a7c90' : '#9a8a9c') : ax < halfWalk(yy) ? '#c8aeae' : grass;
-        else if (isPlaza(xx, yy)) { const pf = (yy - apTop) / (PH - apTop), tw = q(16) * (0.5 + pf), th2 = Math.floor(pf * 16), tx = Math.floor((xx - cx0) / tw), hh = Math.abs(Math.sin(tx * 12.9898 + th2 * 78.233) * 43758.5453) % 1, gl = 0.32 * Math.exp(-Math.pow((xx - this.sunX) / (PW * 0.32), 2)) * (1 - pf), v = pf * 1.05 + (b - 0.5) * 0.32 + (hh - 0.5) * 0.14 - gl; col = Math.abs(xx - cx0) > hwP(yy) - 2 ? '#ead6ca' : v < 0.12 ? '#ecd0be' : v < 0.34 ? '#dcc0b4' : v < 0.56 ? '#cab0ae' : v < 0.8 ? '#b69ea8' : '#a08ca0'; }
+        else if (isPlaza(xx, yy)) { const pf = (yy - apTop) / (PH - apTop), tw = q(16) * (0.5 + pf), th2 = Math.floor(pf * 16), tx = Math.floor((xx - cx0) / tw), hh = Math.abs(Math.sin(tx * 12.9898 + th2 * 78.233) * 43758.5453) % 1, gl = 0.32 * Math.exp(-Math.pow((xx - this.sunX) / (PW * 0.32), 2)) * (1 - pf), v = pf * 1.05 + (this.vn(xx * 0.05, yy * 0.2) - 0.5) * 0.16 + (b - 0.5) * 0.02 + (hh - 0.5) * 0.14 - gl; col = Math.abs(xx - cx0) > hwP(yy) - 2 ? '#ead6ca' : v < 0.12 ? '#ecd0be' : v < 0.34 ? '#dcc0b4' : v < 0.56 ? '#cab0ae' : v < 0.8 ? '#b69ea8' : '#a08ca0'; }
         else col = grass;
         R(xx, yy, 1, 1, col); } }
     const vy = gy - q(120);
     for (let i = -18; i <= 18; i++) { const bx2 = cx0 + i * q(40), k = (apTop - vy) / (PH - vy), tx = cx0 + (bx2 - cx0) * k; this.pl((a, b, w, h, col) => { if (isPlaza(Math.round(a), Math.round(b)) && this.bay(Math.round(a), Math.round(b)) < 0.6) R(a, b, w, h, col); }, tx, apTop, bx2, PH, 1, '#a08898'); }
-    for (let k = 1; k <= 9; k++) { const yy = Math.round(apTop + (PH - apTop) * Math.pow(k / 10, 1.5)); for (let xx = Math.round(eLf(yy)); xx < eRf(yy); xx++) if (this.bay(xx, yy) < 0.6) R(xx, yy, 1, 1, '#a08898'); }
+    for (let k = 1; k <= 9; k++) { const yy = Math.round(apTop + (PH - apTop) * Math.pow(k / 10, 1.5)); for (let xx = Math.round(eLf(yy)); xx < eRf(yy); xx++) if (true) R(xx, yy, 1, 1, '#a08898'); }
     for (let yy = apTop + 2; yy < PH; ) { const f = (yy - apTop) / (PH - apTop), rr = Math.max(2, Math.round(q(2.4 + 5 * f))); for (const [ex, sd] of [[eLf(yy), -1], [eRf(yy), 1]]) { const bx = Math.round(ex + sd * rr * 0.4); for (let y2 = -rr; y2 <= rr; y2++) for (let x2 = -rr; x2 <= rr; x2++) { if (x2 * x2 + y2 * y2 > rr * rr + rr * 0.6) continue; const l = (x2 / rr) * (this.sunX > bx ? 1 : -1) * 0.7 - (y2 / rr) * 0.75 + (this.bay(bx + x2, yy + y2) - 0.5) * 0.4; R(bx + x2, yy - rr * 0.5 + y2, 1, 1, l > 0.7 ? '#d0bc60' : l > 0.25 ? '#76a052' : l > -0.2 ? '#4c7e4a' : '#30563f'); } if (r() < 0.35) R(bx + Math.round((r() - 0.5) * rr), yy - rr, 2, 1, ['#e8506a', '#ffd860', '#f4eee8'][Math.floor(r() * 3)]); } yy += Math.max(2, Math.round(rr * 1.1)); }
     for (let i = 0; i < 460; i++) { const yy = Math.round(gy + 3 + r() * (PH - gy - 3)), xx = Math.round(r() * FW); if (isPlaza(xx, yy) || isPath(xx, yy)) continue; const kk = r(); R(xx, yy, 1, kk < 0.55 ? 2 : 1, kk < 0.55 ? '#3f6a3a' : kk < 0.8 ? '#e8e070' : kk < 0.9 ? '#f4eee8' : '#ff9ab0'); }
     { const mix = (h1, h2, t) => { const a = this.hx(h1), b = this.hx(h2); return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, '0')).join(''); }, at = (h, t) => mix(h, '#b296b0', t);
@@ -202,8 +207,8 @@ export class ProjectsScene {
       const tier = (hw, y1, h, top, front, side) => { S(sx - hw, y1 - h, hw * 2, h, front); S(sx - hw, y1 - h, hw * 2, Math.max(1, Math.round(h * 0.35)), top); S(sx + hw - 2, y1 - h, 2, h, side); S(sx - hw, y1 - h, hw * 2, 1, '#f09a80'); };
       tier(U(14), sb, U(4), '#c4604e', '#94302a', '#6a2220'); tier(U(10), sb - U(4), U(2.5), '#cc6a56', '#9c3a30', '#702620');
       const pw = U(15), ph = U(19), px0 = Math.round(sx - pw / 2), pt = sb - U(6.5) - ph;
-      for (let yy = 0; yy < ph; yy++) for (let xx = 0; xx < pw; xx++) { let col = xx > pw - 3 ? '#6e2220' : xx < 2 ? '#c4584a' : this.bay(px0 + xx, pt + yy) < 0.15 ? '#b04a3c' : '#a23e34'; if (yy === 0) col = '#f0987e'; if (yy === ph - 1) col = '#7a2622'; S(px0 + xx, pt + yy, 1, 1, col); }
-      const gold = (cx, y1, y2, dens) => { for (let yy = y1; yy < y2; yy++) { const ph2 = Math.sin(yy * 1.7 + cx) ; if (this.bay(cx * 3, yy) < dens) S(cx + (ph2 > 0.5 ? 1 : 0), yy, 1, 1, '#ecc664'); if (Math.sin(yy * 2.3 + cx * 0.7) > 0.75) S(cx + (Math.sin(yy * 5.1) > 0 ? -1 : 1), yy, 1, 1, '#ecc664'); } };
+      for (let yy = 0; yy < ph; yy++) for (let xx = 0; xx < pw; xx++) { const f = xx / (pw - 1), nz = this.vn(xx * 0.7 + 5, yy * 0.7), sp = (((xx * 73856093) ^ (yy * 19349663)) & 255) / 255; let col = this.mixc('#c25a4a', '#7e2a26', Math.pow(f, 1.2)); col = this.mixc(col, nz > 0.55 ? '#e08a74' : '#6a2420', Math.abs(nz - 0.5) * 0.45); if (sp > 0.93) col = this.mixc(col, '#f4b49a', 0.4); if (xx === 0) col = '#e07a66'; else if (xx === pw - 1) col = '#5a1c1a'; else if (xx === pw - 2) col = this.mixc(col, '#3a1010', 0.3); if (yy < 2) col = yy ? '#d8806a' : '#f6aa92'; if (yy >= ph - 2) col = yy === ph - 1 ? '#561a18' : '#7a2622'; S(px0 + xx, pt + yy, 1, 1, col); }
+      const gold = (cx, y1, y2) => { const ch = Math.max(5, U(3.4)); for (let yy = y1; yy + ch <= y2; yy += ch + 1) { const hs = Math.abs(Math.sin((cx * 7 + yy) * 12.9898) * 43758.5453) % 1; const gx = cx - 1; for (let k = 0; k < 3; k++) if (((hs * 8 + k) | 0) % 2 === 0 || k === 1) { S(gx, yy + 1 + k * 2, 4, 1, '#8a6420'); S(gx - 0, yy + k * 2, 4, 1, '#f0cc70'); } S(gx + (hs > 0.5 ? 0 : 2), yy, 1, ch - 1, '#f0cc70'); S(gx + (hs > 0.5 ? 1 : 3), yy + 1, 1, ch - 1, '#8a6420'); } };
       gold(px0 + U(9.5), pt + U(2.5), pt + U(8), 0.7); gold(px0 + U(5), pt + U(2.5), pt + U(15), 0.6); gold(px0 + U(9.5), pt + U(11), pt + U(15.5), 0.5);
       S(sx - U(7.5), pt - U(2.5), U(15), U(2.5), '#3a302c'); S(sx - U(7.5), pt - U(2.5), U(15), 1, '#a08068'); S(sx - U(6), pt - U(3.2), U(12), 1, '#5a4c42');
       const fb = pt - U(3), rows = U(46);
@@ -214,7 +219,7 @@ export class ProjectsScene {
         else if (v < 37) { l = -2.2; rg = 2.2; } else if (v < 37.8) { l = -1.4; rg = 1.4; }
         else if (v < 45) { const d = (v - 41.4) / 3.6, hw = 3.2 * Math.sqrt(Math.max(0, 1 - d * d)); l = -hw; rg = hw; } else continue;
         const y = fb - r2, a = Math.round(sx + l * k), b = Math.round(sx + rg * k);
-        for (let xx = a; xx <= b; xx++) { const fr = (xx - a) / Math.max(1, b - a), rx = (xx - sx) / k; let col = fr < 0.1 ? '#2a2420' : fr > 0.88 ? '#d4965e' : fr > 0.62 ? '#806c5a' : fr > 0.3 ? '#625244' : '#4e4238';
+        for (let xx = a; xx <= b; xx++) { const fr = (xx - a) / Math.max(1, b - a), rx = (xx - sx) / k; let col = this.mixc('#3a3028', '#7e6a56', Math.min(1, Math.pow(fr, 1.3) * 1.25)); { const fold = Math.sin(rx * 2.8 + v * 0.07) * 0.5 + 0.5; if (v < 33 && v > 5) col = this.mixc(col, '#241c18', fold * 0.3); if (fr > 0.86) col = this.mixc(col, '#e6ae78', Math.min(1, (fr - 0.86) / 0.12)); if (fr < 0.08) col = '#221c18'; }
           if (v < 1.4) col = fr > 0.7 ? '#6a5a4c' : '#201a16';
           else if (v < 7) { if (Math.abs(rx) < 0.5) col = '#201a16'; }
           else if (v < 33) { if (Math.abs(rx + 3.5) < 0.45 && v > 17 && v < 31) col = '#3a302a'; if (Math.abs(rx - 3.2) < 0.45 && v > 17 && v < 30) col = '#3a302a'; if (Math.abs(rx - 0.4) < 0.4 && v < 30) col = '#36302a'; if (v < 14 && Math.abs(rx - 0.4) < 1.2) col = '#3e342c'; if (v > 28 && v < 33 && Math.abs(rx + 0.6 - (v - 28) * 0.35) < 0.5) col = '#9a8470'; if (v > 28 && v < 33 && Math.abs(rx - 1.4 + (v - 28) * 0.35) < 0.5) col = '#9a8470'; }
@@ -222,7 +227,7 @@ export class ProjectsScene {
           else if (v >= 37.8) { const hy = v - 41.4; if (hy > 1.6 || (hy > 0.4 && Math.abs(rx) > 2)) col = fr > 0.75 ? '#5a4a40' : '#2a221e'; else if (Math.abs(rx + 0.4) < 1.2 && hy < 0.6 && hy > -2.6) col = '#8a765e'; if (Math.abs(Math.abs(rx) - 3.1) < 0.4 && hy < 0.6 && hy > -1.2) col = '#5a4a40'; }
           S(xx, y, 1, 1, col); } }
       hedge(qx0 + U(3), sx - U(14), sb - U(1), U(3)); hedge(sx + U(14), qx1 - U(3), sb - U(1), U(3)); }
-    for (let yy = Math.round(PH * 0.8); yy < PH; yy++) { const f = (yy - PH * 0.8) / (PH * 0.2); for (let xx = 0; xx < FW; xx++) if (this.bay(xx, yy) < f * 0.55) R(xx, yy, 1, 1, '#4a3a6e'); }
+    for (let yy = Math.round(PH * 0.8); yy < PH; yy++) { const f = (yy - PH * 0.8) / (PH * 0.2); for (let xx = 0; xx < FW; xx++) R(xx, yy, 1, 1, 'rgba(74,58,110,' + (f * f * 0.5) + ')'); }
   }
 
   buildFx() {
@@ -390,7 +395,25 @@ export class ProjectsScene {
   }
   cloud(cl, o0) {
     const R = this.R, x0 = Math.round(cl.x + o0), y0 = Math.round(cl.y), w = Math.round(cl.w), h = Math.round(cl.h);
-    for (let yy = -h; yy <= h * 0.6; yy++) { const hw = Math.round(w * Math.sqrt(Math.max(0, 1 - Math.pow(yy / h, 2))) * (0.55 + 0.45 * Math.sin((yy + h) * 0.9 + cl.w))); for (let xx = -hw; xx <= hw; xx++) { const l = yy / h + (this.bay(x0 + xx, y0 + yy) - 0.5) * 0.4; R(x0 + xx, y0 + yy, 1, 1, l > 0.15 ? '#ff9c80' : l > -0.4 ? '#da7e9c' : '#a276ac'); } }
+    for (let yy = -h; yy <= h * 0.7; yy++) for (let xx = -w; xx <= w; xx++) { const nz = this.vn(xx * 0.05 + cl.w, yy * 0.3 + cl.h) * 0.5 + this.vn(xx * 0.18, yy * 0.5) * 0.2, d = Math.pow(xx / w, 2) + Math.pow(yy / (h * (yy < 0 ? 0.9 : 0.6)), 2) + (nz - 0.35) * 0.5; if (d > 1.05) continue; const a = d > 0.78 ? Math.max(0, (1.05 - d) / 0.27) : 1, v = yy / h + (nz - 0.35) * 0.5; R(x0 + xx, y0 + yy, 1, 1, v > 0.2 ? 'rgba(162,118,172,' + a + ')' : v > -0.35 ? 'rgba(232,134,156,' + a + ')' : 'rgba(255,184,150,' + a + ')'); }
+  }
+  bloom(a) {
+    const { ctx: c, PW, PH } = this, w = Math.max(8, PW >> 2), h = Math.max(8, PH >> 2);
+    if (!this.bc) { this.bc = document.createElement('canvas'); this.bc.width = w; this.bc.height = h; this.bx = this.bc.getContext('2d'); }
+    const b = this.bx; b.globalCompositeOperation = 'copy'; b.filter = 'brightness(0.55) contrast(3) saturate(1.3) blur(1px)'; b.imageSmoothingEnabled = true; b.drawImage(c.canvas, 0, 0, w, h); b.filter = 'none';
+    c.save(); c.imageSmoothingEnabled = true; c.globalCompositeOperation = 'lighter'; c.globalAlpha = a; c.drawImage(this.bc, 0, 0, PW, PH); c.restore(); c.imageSmoothingEnabled = false;
+  }
+  leafFrame() {
+    const { PW, PH, q } = this, [cv, x] = this.mk(PW, PH), R = this.painter(x), r = this.rng(55); this.gB = cv;
+    const leaf = (cx, cy, rr, lit) => { for (let yy = -rr; yy <= rr; yy++) for (let xx = -rr; xx <= rr; xx++) if (xx * xx + yy * yy <= rr * rr) { const l = (xx / rr) * lit * 0.7 - (yy / rr) * 0.5 + (this.bay(cx + xx, cy + yy) - 0.5) * 0.5; R(cx + xx, cy + yy, 1, 1, l > 0.5 ? '#d8d870' : l > 0.15 ? '#78a850' : l > -0.2 ? '#3e7a46' : '#244a38'); } };
+    const br = (x0, y0, ang, len, th, d, lit) => { const x1 = x0 + Math.cos(ang) * len, y1 = y0 + Math.sin(ang) * len; this.pl(R, x0, y0, x1, y1, Math.max(1, Math.round(th)), '#2a1c24'); const n = Math.max(3, Math.round(len / q(2.6))); for (let i = 1; i <= n; i++) { const t = i / n; if (r() < 0.95) leaf(Math.round(x0 + (x1 - x0) * t + (r() - 0.5) * q(8)), Math.round(y0 + (y1 - y0) * t + (r() - 0.5) * q(8)), Math.round(q(4 + r() * 5)), lit); } if (d > 0) for (let k = 0; k < 2; k++) br(x1, y1, ang + (r() - 0.5) * 1.4, len * (0.62 + r() * 0.15), th * 0.7, d - 1, lit); };
+    br(-q(6), -q(6), 0.95, q(56), 4, 3, 1); br(-q(6), q(30), 0.5, q(38), 3, 2, 1); br(PW + q(6), -q(6), 2.2, q(52), 4, 3, -1); br(PW + q(6), q(26), 2.7, q(34), 3, 2, -1);
+  }
+  rays(o0) {
+    const { ctx: c, q, gy, sunX, t, PH } = this, sx = sunX + o0, sy = gy - q(26), n = 11;
+    c.save(); c.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < n; i++) { const a = Math.PI * (0.06 + 0.88 * i / (n - 1)) + Math.sin(t * 0.25 + i * 1.9) * 0.015, wd = 0.028 + 0.012 * Math.sin(i * 2.3 + 1), L = PH * 1.5, al = 0.04 + 0.02 * Math.sin(t * 0.7 + i * 1.7); const g = c.createLinearGradient(sx, sy, sx - Math.cos(a) * L, sy - Math.sin(a) * L * 0.0 + L * 0.0); c.fillStyle = 'rgba(255,205,140,' + al + ')'; c.beginPath(); c.moveTo(sx, sy); c.lineTo(sx + Math.cos(a - wd) * L, sy - Math.sin(a - wd) * L); c.lineTo(sx + Math.cos(a + wd) * L, sy - Math.sin(a + wd) * L); c.closePath(); c.fill(); }
+    c.restore();
   }
   draw() {
     const { ctx: c, M, t, mx, R } = this, o = k => Math.round(mx * k) - M, o0 = o(2), o1 = o(5);
@@ -398,6 +421,7 @@ export class ProjectsScene {
     for (const cl of this.clouds) this.cloud(cl, o0);
     for (const b of this.birds) { const fl = Math.sin(t * 9 + b.ph) > 0 ? 1 : 0, bx = Math.round(b.x + o0), by = Math.round(b.y); R(bx, by + fl, 1, 1, '#2a2444'); R(bx + 1, by, 1, 1, '#2a2444'); R(bx + 2, by + fl, 1, 1, '#2a2444'); }
     c.drawImage(this.L1, o1, 0);
+    { const gy = this.gy, q = this.q, g = c.createLinearGradient(0, gy - q(14), 0, gy + q(56)); g.addColorStop(0, 'rgba(255,200,170,0)'); g.addColorStop(0.3, 'rgba(255,204,176,0.26)'); g.addColorStop(1, 'rgba(255,204,176,0)'); c.fillStyle = g; c.fillRect(0, gy - q(14), this.PW, q(70)); }
     c.save(); c.translate(o1, 0);
     for (const l of this.lamps) this.blit(c, this.glow(l.r, '#ffc878'), l.x, l.y, 0.32 + 0.04 * Math.sin(t * 5 + l.x));
     const { arches, yB } = this;
@@ -410,6 +434,11 @@ export class ProjectsScene {
       else R(p.x, p.y, 2, 1, p.c); }
     c.globalAlpha = 1; c.restore();
     for (const l of this.leaves) R(l.x + o0, l.y, Math.sin(t * 3 + l.ph) > 0 ? 2 : 1, 1, l.c);
+    if (!this.gB) this.leafFrame(); c.drawImage(this.gB, 0, 0);
+    { const sy = this.gy - this.q(26), sx = this.sunX + o0, cx = this.PW / 2, cy = this.PH / 2; c.save(); c.globalCompositeOperation = 'lighter'; [[0.5, 6, '255,210,150', 0.09], [0.9, 10, '150,200,255', 0.06], [1.35, 4, '255,150,190', 0.08], [1.8, 14, '255,230,170', 0.05]].forEach(([k, rr, col, al]) => { const x = sx + (cx - sx) * k * 1.4, y = sy + (cy - sy) * k * 1.4, g = c.createRadialGradient(x, y, 0, x, y, this.q(rr)); g.addColorStop(0, 'rgba(' + col + ',' + al + ')'); g.addColorStop(1, 'rgba(' + col + ',0)'); c.fillStyle = g; c.beginPath(); c.arc(x, y, this.q(rr), 0, 7); c.fill(); }); c.restore();
+      if (!this.motes) this.motes = Array.from({ length: 46 }, (_, i) => ({ x: Math.random() * this.PW, y: this.gy - this.q(40) + Math.random() * this.q(120), v: 2 + Math.random() * 4, ph: Math.random() * 6 }));
+      for (const m of this.motes) { m.x += Math.sin(t * 0.7 + m.ph) * 0.06 - 0.02; m.y -= m.v * 0.004; if (m.y < this.gy - this.q(50)) m.y = this.gy + this.q(70); const a = 0.4 + 0.6 * Math.abs(Math.sin(t * 1.5 + m.ph)); c.globalAlpha = a * 0.8; R(Math.round(m.x), Math.round(m.y), 1, 1, '#fff2c0'); } c.globalAlpha = 1; }
+    this.rays(o0); this.bloom(0.3);
     this.drawText(o1);
   }
   drawText(o1) {
